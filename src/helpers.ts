@@ -657,6 +657,7 @@ export const parsePoolPairData = (
         let sumBalances = bnum(0);
         let prodBalances = bnum(1);
 
+        // Calculate sum and prod. Note that balances need to be scaled to 18 decimals
         for (let i = 0; i < p.tokens.length; i++) {
             sumBalances = sumBalances.plus(bnum(p.tokens[i].balance));
             prodBalances = prodBalances.times(bnum(p.tokens[i].balance));
@@ -673,7 +674,7 @@ export const parsePoolPairData = (
             n: bnum(p.tokens.length),
             invariant: bnum(
                 getInvariantStablePool(
-                    p.amp.toNumber(),
+                    bnum(p.amp).toNumber(),
                     p.tokens.length,
                     sumBalances.toNumber(),
                     prodBalances.toNumber()
@@ -816,14 +817,23 @@ export function EVMgetOutputAmountSwap(
         if (balanceIn.isEqualTo(bnum(0))) {
             return bnum(0);
         } else {
-            returnAmount = calcOutGivenIn(
-                balanceIn,
-                weightIn,
-                balanceOut,
-                weightOut,
-                amount,
-                swapFee
-            );
+            // TODO: Add EVM calculation for Stable pools also
+            if (poolPairData.poolType == 'Weighted') {
+                returnAmount = calcOutGivenIn(
+                    balanceIn,
+                    weightIn,
+                    balanceOut,
+                    weightOut,
+                    amount,
+                    swapFee
+                );
+            } else if (poolPairData.poolType == 'Stable') {
+                returnAmount = getOutputAmountSwap(
+                    poolPairData,
+                    swapType,
+                    amount
+                );
+            }
             // Update balances of tokenIn and tokenOut
             pools[poolPairData.id] = updateTokenBalanceForPool(
                 pools[poolPairData.id],
@@ -844,14 +854,24 @@ export function EVMgetOutputAmountSwap(
             // The maximum amoutOut you can have is 1/3 of the balanceOut to ensure binomial approximation diverges
             return bnum(0);
         } else {
-            returnAmount = calcInGivenOut(
-                balanceIn,
-                weightIn,
-                balanceOut,
-                weightOut,
-                amount,
-                swapFee
-            );
+            // TODO: Add EVM calculation for Stable pools also
+            if (poolPairData.poolType == 'Weighted') {
+                returnAmount = calcInGivenOut(
+                    balanceIn,
+                    weightIn,
+                    balanceOut,
+                    weightOut,
+                    amount,
+                    swapFee
+                );
+            } else if (poolPairData.poolType == 'Stable') {
+                returnAmount = getOutputAmountSwap(
+                    poolPairData,
+                    swapType,
+                    amount
+                );
+            }
+
             // Update balances of tokenIn and tokenOut
             pools[poolPairData.id] = updateTokenBalanceForPool(
                 pools[poolPairData.id],
@@ -1008,7 +1028,11 @@ export function filterPools(
         let tokenListSet = new Set(pool.tokensList);
         disabledTokens.forEach(token => tokenListSet.delete(token.address));
 
-        if (tokenListSet.has(tokenIn) && tokenListSet.has(tokenOut)) {
+        if (
+            (tokenListSet.has(tokenIn) && tokenListSet.has(tokenOut)) ||
+            (tokenListSet.has(tokenIn.toLowerCase()) &&
+                tokenListSet.has(tokenOut.toLowerCase()))
+        ) {
             poolsDirect[pool.id] = pool;
             return;
         }
