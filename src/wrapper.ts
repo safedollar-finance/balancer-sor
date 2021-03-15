@@ -52,6 +52,7 @@ export class SOR {
             disabledTokens: [],
         }
     ) {
+        console.log('SORV2');
         this.provider = provider;
         this.gasPrice = gasPrice;
         this.maxPools = maxPools;
