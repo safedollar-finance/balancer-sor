@@ -109,8 +109,10 @@ class SOR {
                     this.chainId
                 );
                 this.tokenCost[tokenOut] = costOutputToken;
+                return costOutputToken;
             } else {
                 this.tokenCost[tokenOut] = cost;
+                return cost;
             }
         });
     }

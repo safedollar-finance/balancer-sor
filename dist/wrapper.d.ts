@@ -38,7 +38,7 @@ export declare class SOR {
         poolsSource: string | SubGraphPools,
         disabledOptions?: DisabledOptions
     );
-    setCostOutputToken(tokenOut: string, cost?: BigNumber): Promise<void>;
+    setCostOutputToken(tokenOut: string, cost?: BigNumber): Promise<BigNumber>;
     fetchPools(isOnChain?: boolean): Promise<boolean>;
     private fetchOnChainBalances;
     getSwaps(
