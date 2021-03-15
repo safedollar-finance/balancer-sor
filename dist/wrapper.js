@@ -77,6 +77,7 @@ class SOR {
         this.poolsForPairsCache = {};
         this.processedDataCache = {};
         this.finishedFetchingOnChain = false;
+        console.log('SORV2');
         this.provider = provider;
         this.gasPrice = gasPrice;
         this.maxPools = maxPools;
