@@ -299,7 +299,7 @@ export const smartOrderRouter = (
         );
 
         // // TODO: remove. To debug only!
-
+        /*
         console.log(
             'Prices should be all very close (unless one of the paths is on the limit!'
         );
@@ -311,6 +311,7 @@ export const smartOrderRouter = (
                 swapAmount
             ).toNumber()
         );
+        */
 
         let poolPairData = path.poolPairData;
 
@@ -444,7 +445,7 @@ export const smartOrderRouter = (
                     .toString(); // Add dust to second swapExactOut
         }
     }
-    console.log('Number of paths: ' + bestPaths.length.toString());
+    // console.log('Number of paths: ' + bestPaths.length.toString());
     return [swaps, bestTotalReturn];
 };
 
