@@ -285,14 +285,19 @@ exports.smartOrderRouter = (
             swapAmount
         );
         // // TODO: remove. To debug only!
+        /*
         console.log(
             'Prices should be all very close (unless one of the paths is on the limit!'
         );
         console.log(
-            helpers_1
-                .getSpotPriceAfterSwapForPath(pools, path, swapType, swapAmount)
-                .toNumber()
+            getSpotPriceAfterSwapForPath(
+                pools,
+                path,
+                swapType,
+                swapAmount
+            ).toNumber()
         );
+        */
         let poolPairData = path.poolPairData;
         if (i == 0)
             // Store lenght of first path to add dust to correct rounding error at the end
@@ -423,7 +428,7 @@ exports.smartOrderRouter = (
                     .toString(); // Add dust to second swapExactOut
         }
     }
-    console.log('Number of paths: ' + bestPaths.length.toString());
+    // console.log('Number of paths: ' + bestPaths.length.toString());
     return [swaps, bestTotalReturn];
 };
 // TODO: calculate EVM return (use bmath) and update pool balances like current SOR
