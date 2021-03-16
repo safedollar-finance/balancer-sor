@@ -29,4 +29,4 @@ exports.getCostOutputToken = costToken_1.getCostOutputToken;
 var pools_1 = require('./pools');
 exports.POOLS = pools_1.POOLS;
 var wrapper_1 = require('./wrapper');
-exports.SOR = wrapper_1.SOR;
+exports.SORV2 = wrapper_1.SORV2;
