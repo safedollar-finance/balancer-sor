@@ -13,7 +13,7 @@ import {
 } from './types';
 import { bnum } from './bmath';
 
-export class SORV2 {
+export class SOR {
     MULTIADDR: { [chainId: number]: string } = {
         1: '0xeefba1e63905ef1d7acba5a8513c70307c1ce441',
         42: '0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A',

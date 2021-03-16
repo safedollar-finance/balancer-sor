@@ -50,7 +50,7 @@ const bignumber_1 = require('./utils/bignumber');
 const sor = __importStar(require('./index'));
 const index_1 = require('./index');
 const bmath_1 = require('./bmath');
-class SORV2 {
+class SOR {
     constructor(
         provider,
         gasPrice,
@@ -505,4 +505,4 @@ class SORV2 {
         else return false;
     }
 }
-exports.SORV2 = SORV2;
+exports.SOR = SOR;

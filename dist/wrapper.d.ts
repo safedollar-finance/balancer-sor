@@ -8,7 +8,7 @@ import {
     SubGraphPoolDictionary,
     DisabledOptions,
 } from './types';
-export declare class SORV2 {
+export declare class SOR {
     MULTIADDR: {
         [chainId: number]: string;
     };
