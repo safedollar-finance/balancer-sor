@@ -188,6 +188,7 @@ export class SOR {
             tokenIn: '',
             tokenOut: '',
             returnAmount: bnum(0),
+            marketSp: bnum(0),
         };
 
         if (this.finishedFetchingOnChain) {
@@ -236,6 +237,7 @@ export class SOR {
             tokenIn: '',
             tokenOut: '',
             returnAmount: bnum(0),
+            marketSp: bnum(0),
         };
 
         if (onChainPools.pools.length === 0) return swapInfo;
@@ -308,7 +310,8 @@ export class SOR {
             swapAmt,
             tokenIn,
             tokenOut,
-            total
+            total,
+            marketSp
         );
 
         return swapInfo;
