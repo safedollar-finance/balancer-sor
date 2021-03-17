@@ -195,6 +195,7 @@ class SOR {
                 tokenIn: '',
                 tokenOut: '',
                 returnAmount: bmath_1.bnum(0),
+                marketSp: bmath_1.bnum(0),
             };
             if (this.finishedFetchingOnChain) {
                 // All Pools with OnChain Balances is already fetched so use that
@@ -240,6 +241,7 @@ class SOR {
                 tokenIn: '',
                 tokenOut: '',
                 returnAmount: bmath_1.bnum(0),
+                marketSp: bmath_1.bnum(0),
             };
             if (onChainPools.pools.length === 0) return swapInfo;
             let pools, paths, marketSp;
@@ -304,7 +306,8 @@ class SOR {
                 swapAmt,
                 tokenIn,
                 tokenOut,
-                total
+                total,
+                marketSp
             );
             return swapInfo;
         });

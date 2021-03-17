@@ -128,5 +128,6 @@ export declare function formatSwaps(
     swapAmount: BigNumber,
     tokenIn: string,
     tokenOut: string,
-    returnAmount: BigNumber
+    returnAmount: BigNumber,
+    marketSp: BigNumber
 ): SwapInfo;

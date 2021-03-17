@@ -1078,7 +1078,8 @@ function formatSwaps(
     swapAmount,
     tokenIn,
     tokenOut,
-    returnAmount
+    returnAmount,
+    marketSp
 ) {
     const tokenAddressesSet = new Set();
     let tokenInDecimals;
@@ -1090,6 +1091,7 @@ function formatSwaps(
         returnAmount: bmath_1.bnum(0),
         tokenIn: '',
         tokenOut: '',
+        marketSp: marketSp,
     };
     if (swaps.length === 0) {
         return swapInfo;
