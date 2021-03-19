@@ -131,7 +131,7 @@ exports.smartOrderRouter = (
     let bestSwapAmounts, bestPathIds, bestPaths, swapAmounts;
     // No paths available or totalSwapAmount == 0, return empty solution
     if (paths.length == 0 || totalSwapAmount.isZero()) {
-        return [[], bmath_1.bnum(0)];
+        return [[], bmath_1.bnum(0), bmath_1.bnum(0)];
     }
     // Before we start the main loop, we first check if there is enough liquidity for this totalSwapAmount at all
     let highestLimitAmounts = helpers_1.getHighestLimitAmountsForPaths(
@@ -159,7 +159,7 @@ exports.smartOrderRouter = (
         break; // No need to keep looping as this number of pools (i) has enough liquidity
     }
     if (initialNumPaths == -1) {
-        return [[], bmath_1.bnum(0)]; // Not enough liquidity, return empty
+        return [[], bmath_1.bnum(0), bmath_1.bnum(0)]; // Not enough liquidity, return empty
     }
     // First get the optimal totalReturn to trade 'totalSwapAmount' with
     // one path only (b=1). Then increase the number of pools as long as
@@ -276,11 +276,18 @@ exports.smartOrderRouter = (
     let totalSwapAmountWithRoundingErrors = new bignumber_1.BigNumber(0);
     let dust = new bignumber_1.BigNumber(0);
     let lenghtFirstPath;
+    let highestSwapAmt = bmath_1.bnum(0);
+    let largestSwapPath;
     bestTotalReturn = bmath_1.bnum(0); // Reset totalReturn as this time it will be
     // calculated with the EVM maths so the return is exactly what the user will get
     // after executing the transaction (given there are no front-runners)
     bestPaths.forEach((path, i) => {
         let swapAmount = bestSwapAmounts[i];
+        console.log(swapAmount.toString());
+        if (swapAmount.gt(highestSwapAmt)) {
+            highestSwapAmt = swapAmount;
+            largestSwapPath = path;
+        }
         totalSwapAmountWithRoundingErrors = totalSwapAmountWithRoundingErrors.plus(
             swapAmount
         );
@@ -429,7 +436,13 @@ exports.smartOrderRouter = (
         }
     }
     // console.log('Number of paths: ' + bestPaths.length.toString());
-    return [swaps, bestTotalReturn];
+    const marketSp = helpers_1.getSpotPriceAfterSwapForPath(
+        pools,
+        largestSwapPath,
+        swapType,
+        bmath_1.bnum(0)
+    );
+    return [swaps, bestTotalReturn, marketSp];
 };
 // TODO: calculate EVM return (use bmath) and update pool balances like current SOR
 exports.calcTotalReturn = (pools, paths, swapType, swapAmounts) => {

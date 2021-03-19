@@ -219,7 +219,6 @@ class SOR {
                     false
                 );
             }
-            // !!!!!!! TODO - Remember marketSp
             return swapInfo;
         });
     }
@@ -261,11 +260,7 @@ class SOR {
                     tokenOut,
                     poolsList
                 );
-                [paths, marketSp] = this.processPathsAndPrices(
-                    pathData,
-                    pools,
-                    swapType
-                );
+                paths = this.processPathsAndPrices(pathData, pools, swapType);
                 // Update cache if used
                 if (useProcessCache)
                     this.processedDataCache[
@@ -292,7 +287,7 @@ class SOR {
             // swapExactIn - total = total amount swap will return of tokenOut
             // swapExactOut - total = total amount of tokenIn required for swap
             let swaps, total;
-            [swaps, total] = sor.smartOrderRouter(
+            [swaps, total, marketSp] = sor.smartOrderRouter(
                 JSON.parse(JSON.stringify(pools)), // Need to keep original pools for cache
                 paths,
                 swapType,
@@ -300,6 +295,10 @@ class SOR {
                 this.maxPools,
                 costOutputToken
             );
+            if (useProcessCache)
+                this.processedDataCache[
+                    `${tokenIn}${tokenOut}${swapType}`
+                ].marketSp = marketSp;
             swapInfo = sor.formatSwaps(
                 swaps,
                 swapType,
@@ -348,13 +347,13 @@ class SOR {
                 );
                 // Find paths and prices for swap types
                 let pathsExactIn;
-                [pathsExactIn] = this.processPathsAndPrices(
+                pathsExactIn = this.processPathsAndPrices(
                     JSON.parse(JSON.stringify(pathData)),
                     pools,
                     'swapExactIn'
                 );
                 let pathsExactOut;
-                [pathsExactOut] = this.processPathsAndPrices(
+                pathsExactOut = this.processPathsAndPrices(
                     pathData,
                     pools,
                     'swapExactOut'
@@ -487,10 +486,7 @@ class SOR {
     processPathsAndPrices(PathArray, PoolsDict, SwapType) {
         let paths;
         [paths] = sor.processPaths(PathArray, PoolsDict, SwapType);
-        const bestSpotPrice = bmath_1.bnum(0);
-        // !!!!!!! TODO - Add this.
-        // const bestSpotPrice = sor.getMarketSpotPrice(paths);
-        return [paths, bestSpotPrice];
+        return paths;
     }
     // Used for cache ids
     createKey(Token1, Token2) {

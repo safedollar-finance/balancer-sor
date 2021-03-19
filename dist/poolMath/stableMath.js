@@ -429,7 +429,7 @@ function _derivative(func, amount, poolPairData) {
     const INFINITESIMAL = bmath_1.bnum(Math.pow(10, -6)); // Todo: put in config file
     // If amount is zero we have to change it to a small value otherwise the calculation
     // below won't work as delta will also be 0 and we'll have 0/0
-    if (amount.isZero()) amount = INFINITESIMAL;
+    if (amount.lt(INFINITESIMAL)) amount = INFINITESIMAL;
     let x = amount;
     let delta = x.times(0.0001);
     let prevDerivative = bmath_1.bnum(0);
@@ -442,9 +442,10 @@ function _derivative(func, amount, poolPairData) {
         // Break if precision reached
         if (
             derivative
-                .minus(prevDerivative)
+                .div(prevDerivative)
+                .minus(bmath_1.bnum(1))
                 .abs()
-                .lt(INFINITESIMAL)
+                .lt(bmath_1.bnum(0.01)) // Variation of less than 1% means convergence
         )
             break;
         prevDerivative = derivative;

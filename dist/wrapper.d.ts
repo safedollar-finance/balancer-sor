@@ -65,7 +65,7 @@ export declare class SOR {
         PathArray: Path[],
         PoolsDict: SubGraphPoolDictionary,
         SwapType: string
-    ): [Path[], BigNumber];
+    ): Path[];
     createKey(Token1: string, Token2: string): string;
     hasDataForPair(tokenIn: string, tokenOut: string): boolean;
 }

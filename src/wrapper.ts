@@ -215,8 +215,6 @@ export class SOR {
             );
         }
 
-        // !!!!!!! TODO - Remember marketSp
-
         return swapInfo;
     }
 
@@ -261,11 +259,7 @@ export class SOR {
                 poolsList
             );
 
-            [paths, marketSp] = this.processPathsAndPrices(
-                pathData,
-                pools,
-                swapType
-            );
+            paths = this.processPathsAndPrices(pathData, pools, swapType);
 
             // Update cache if used
             if (useProcessCache)
@@ -295,7 +289,7 @@ export class SOR {
         // swapExactIn - total = total amount swap will return of tokenOut
         // swapExactOut - total = total amount of tokenIn required for swap
         let swaps: any, total: BigNumber;
-        [swaps, total] = sor.smartOrderRouter(
+        [swaps, total, marketSp] = sor.smartOrderRouter(
             JSON.parse(JSON.stringify(pools)), // Need to keep original pools for cache
             paths,
             swapType,
@@ -303,6 +297,11 @@ export class SOR {
             this.maxPools,
             costOutputToken
         );
+
+        if (useProcessCache)
+            this.processedDataCache[
+                `${tokenIn}${tokenOut}${swapType}`
+            ].marketSp = marketSp;
 
         swapInfo = sor.formatSwaps(
             swaps,
@@ -359,14 +358,14 @@ export class SOR {
 
             // Find paths and prices for swap types
             let pathsExactIn: Path[];
-            [pathsExactIn] = this.processPathsAndPrices(
+            pathsExactIn = this.processPathsAndPrices(
                 JSON.parse(JSON.stringify(pathData)),
                 pools,
                 'swapExactIn'
             );
 
             let pathsExactOut: Path[];
-            [pathsExactOut] = this.processPathsAndPrices(
+            pathsExactOut = this.processPathsAndPrices(
                 pathData,
                 pools,
                 'swapExactOut'
@@ -519,15 +518,11 @@ export class SOR {
         PathArray: Path[],
         PoolsDict: SubGraphPoolDictionary,
         SwapType: string
-    ): [Path[], BigNumber] {
+    ): Path[] {
         let paths: Path[];
         [paths] = sor.processPaths(PathArray, PoolsDict, SwapType);
 
-        const bestSpotPrice = bnum(0);
-        // !!!!!!! TODO - Add this.
-        // const bestSpotPrice = sor.getMarketSpotPrice(paths);
-
-        return [paths, bestSpotPrice];
+        return paths;
     }
 
     // Used for cache ids
