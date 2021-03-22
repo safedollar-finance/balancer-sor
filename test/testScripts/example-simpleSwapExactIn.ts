@@ -37,7 +37,7 @@ async function simpleSwap() {
     const maxNoPools = 4;
     const chainId = 42;
     // TODO - Update with ipns when ready.
-    const poolsUrl = `https://storageapi.fleek.co/johngrantuk-team-bucket/poolsV2.json`;
+    const poolsUrl = `https://storageapi.fleek.co/johngrantuk-team-bucket/poolsRc1-22-03.json`;
 
     const sor = new SOR(provider, gasPrice, maxNoPools, chainId, poolsUrl);
 
@@ -72,7 +72,7 @@ async function simpleSwap() {
 
     console.log(swapInfo.returnAmount.toString());
     console.log(swapInfo.swaps);
-
+    /*
     // TODO - Update with deploy
     const vaultAddr = '0x99EceD8Ba43D090CA4283539A31431108FD34438';
     const validatorAddr = '0x6648473ae4D7a7FdE330846D11ee95FDE2DE9447';
@@ -102,6 +102,7 @@ async function simpleSwap() {
         );
 
     console.log(`tx: ${tx.hash}`);
+    */
 }
 
 simpleSwap();

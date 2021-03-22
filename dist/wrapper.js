@@ -67,8 +67,8 @@ class SOR {
             42: '0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A',
         };
         this.VAULTADDR = {
-            1: '0x99EceD8Ba43D090CA4283539A31431108FD34438',
-            42: '0x99EceD8Ba43D090CA4283539A31431108FD34438',
+            1: '0xba1c01474A7598c2B49015FdaFc67DdF06ce15f7',
+            42: '0xba1c01474A7598c2B49015FdaFc67DdF06ce15f7',
         };
         // avg Balancer swap cost. Can be updated manually if required.
         this.swapCost = new bignumber_1.BigNumber('100000');
