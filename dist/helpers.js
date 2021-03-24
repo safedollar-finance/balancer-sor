@@ -1109,20 +1109,32 @@ function formatSwaps(
     const tokenArray = [...tokenAddressesSet];
     if (swapType === 'swapExactIn') {
         const swapsV2 = [];
+        /*
+         * Multihop swaps can be executed by passing an`amountIn` value of zero for a swap.This will cause the amount out
+         * of the previous swap to be used as the amount in of the current one.In such a scenario, `tokenIn` must equal the
+         * previous swap's `tokenOut`.
+         * */
         swaps.forEach(sequence => {
-            sequence.forEach(swap => {
+            sequence.forEach((swap, i) => {
+                let amountScaled = '0'; // amount will be 0 for second swap in multihop swap
+                if (i == 0) {
+                    // First swap so should have a value for both single and multihop
+                    //!!!!!!! TO DO - Not sure if this is a correct way to handle?
+                    amountScaled = bmath_1
+                        .scale(
+                            bmath_1.bnum(swap.swapAmount),
+                            swap.tokenInDecimals
+                        )
+                        .toString()
+                        .split('.')[0];
+                }
                 const inIndex = tokenArray.indexOf(swap.tokenIn);
                 const outIndex = tokenArray.indexOf(swap.tokenOut);
                 const swapV2 = {
                     poolId: swap.pool,
                     tokenInIndex: inIndex,
                     tokenOutIndex: outIndex,
-                    amountIn: bmath_1
-                        .scale(
-                            bmath_1.bnum(swap.swapAmount),
-                            swap.tokenInDecimals
-                        )
-                        .toString(),
+                    amountIn: amountScaled,
                     userData: '0x',
                 };
                 swapsV2.push(swapV2);
@@ -1132,25 +1144,43 @@ function formatSwaps(
         swapInfo.returnAmount = bmath_1.scale(returnAmount, tokenOutDecimals);
         swapInfo.swaps = swapsV2;
     } else {
-        const swapsV2 = [];
-        swaps.forEach(sequence => {
-            sequence.forEach(swap => {
+        let swapsV2 = [];
+        /*
+        SwapExactOut will have order reversed in V2.
+        v1 = [[x, y]], [[a, b]]
+        v2 = [y, x, b, a]
+        */
+        swaps.forEach((sequence, sequenceNo) => {
+            if (sequence.length > 2)
+                throw new Error(
+                    'Multihop with more than 2 swaps not supported'
+                );
+            const sequenceSwaps = [];
+            sequence.forEach((swap, i) => {
                 const inIndex = tokenArray.indexOf(swap.tokenIn);
                 const outIndex = tokenArray.indexOf(swap.tokenOut);
                 const swapV2 = {
                     poolId: swap.pool,
                     tokenInIndex: inIndex,
                     tokenOutIndex: outIndex,
-                    amountOut: bmath_1
+                    amountOut: '0',
+                    userData: '0x',
+                };
+                if (i == 0 && sequence.length > 1) {
+                    sequenceSwaps[1] = swapV2; // Make the swap the last in V2 order for the sequence
+                } else {
+                    let amountScaled = bmath_1
                         .scale(
                             bmath_1.bnum(swap.swapAmount),
                             swap.tokenOutDecimals
                         )
-                        .toString(),
-                    userData: '0x',
-                };
-                swapsV2.push(swapV2);
+                        .toString()
+                        .split('.')[0];
+                    swapV2.amountOut = amountScaled; // Make the swap the first in V2 order for the sequence with the value
+                    sequenceSwaps[0] = swapV2;
+                }
             });
+            swapsV2 = swapsV2.concat(sequenceSwaps);
         });
         swapInfo.swapAmount = bmath_1.scale(swapAmount, tokenOutDecimals);
         swapInfo.returnAmount = bmath_1.scale(returnAmount, tokenInDecimals);
