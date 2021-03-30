@@ -9,11 +9,12 @@ import {
     EVMgetOutputAmountSwap,
 } from './helpers';
 import { bnum } from './bmath';
+import { priceErrorTolerance, infinitesimal } from './config';
 import { BigNumber } from './utils/bignumber';
 import { Path, Swap, SubGraphPoolDictionary } from './types';
 import { MaxUint256 } from '@ethersproject/constants';
 
-// TODO give the option to choose a % of slippage beyond current price?
+// TODO get max price from slippage tolerance given by user options
 export const MAX_UINT = MaxUint256;
 
 const minAmountOut = 0;
@@ -44,67 +45,66 @@ export function processPaths(
     return [sortedPaths, maxLiquidityAvailable];
 }
 
-// TODO: needs to be refined. Maybe we only do this server side when the amount
-// of pools make SOR v2 slow.
-export function filterPaths(
-    pools: SubGraphPoolDictionary,
-    paths: Path[], // Paths must come already sorted by descending limitAmount
-    // which is done in processPaths()
-    swapType: string,
-    maxPools: Number,
-    maxLiquidityAvailable: BigNumber,
-    costOutputToken: BigNumber
-): Path[] {
-    // TODO: move this constant to config file
-    const maxFilterSwapAmounts = 10;
-    const filterSwapAmountsRatio = 100;
-    let filteredPaths = [];
-    let filteredPathIds = [];
-    // Always add the maxPools most liquid paths to the filteredPaths
-    for (let j = 0; j < maxPools && j < paths.length; ++j) {
-        filteredPathIds.push(paths[j].id);
-        filteredPaths.push(paths[j]);
-    }
+// // TODO: needs to be refined. Maybe we only do this server side when the amount
+// // of pools make SOR v2 slow.
+// export function filterPaths(
+//     pools: SubGraphPoolDictionary,
+//     paths: Path[], // Paths must come already sorted by descending limitAmount
+//     // which is done in processPaths()
+//     swapType: string,
+//     maxPools: Number,
+//     maxLiquidityAvailable: BigNumber,
+//     costOutputToken: BigNumber
+// ): Path[] {
+//     const maxFilterSwapAmounts = 10;
+//     const filterSwapAmountsRatio = 100;
+//     let filteredPaths = [];
+//     let filteredPathIds = [];
+//     // Always add the maxPools most liquid paths to the filteredPaths
+//     for (let j = 0; j < maxPools && j < paths.length; ++j) {
+//         filteredPathIds.push(paths[j].id);
+//         filteredPaths.push(paths[j]);
+//     }
 
-    // Now filter for decreasing filterSwapAmounts, starting with
-    // filterSwapAmount = maxLiquidityAvailable/filterSwapAmountsRatio
-    let filterSwapAmount = maxLiquidityAvailable.div(
-        bnum(filterSwapAmountsRatio)
-    );
-    for (
-        let i = 0;
-        i < maxFilterSwapAmounts && filterSwapAmount.gt(bnum(1)); // Stop for values less than 1 wei
-        // TODO: stop for values of swapAmount less than the cost of adding a new pool to the swap
-        ++i
-    ) {
-        for (let j = 0; j < paths.length; ++j) {
-            paths[j].filterEffectivePrice = getEffectivePriceSwapForPath(
-                pools,
-                paths[j],
-                swapType,
-                filterSwapAmount
-            );
-        }
-        // Sort paths based on lowest effectivePrice
-        let sortedPaths = [...paths].sort((a, b) => {
-            return b.filterEffectivePrice
-                .minus(a.filterEffectivePrice)
-                .toNumber();
-        });
-        // Add best maxPools paths to filteredPaths if path not already present
-        for (let j = 0; j < maxPools && j < paths.length; ++j) {
-            if (!filteredPathIds.includes(sortedPaths[j].id)) {
-                filteredPathIds.push(sortedPaths[j].id);
-                filteredPaths.push(sortedPaths[j]);
-            }
-        }
-        filterSwapAmount = filterSwapAmount.div(filterSwapAmountsRatio);
-    }
-    console.log('maxLiquidityAvailable: ' + maxLiquidityAvailable.toString());
-    console.log('#paths before filter: ' + paths.length.toString());
-    console.log('#paths after filter : ' + filteredPaths.length.toString());
-    return filteredPaths;
-}
+//     // Now filter for decreasing filterSwapAmounts, starting with
+//     // filterSwapAmount = maxLiquidityAvailable/filterSwapAmountsRatio
+//     let filterSwapAmount = maxLiquidityAvailable.div(
+//         bnum(filterSwapAmountsRatio)
+//     );
+//     for (
+//         let i = 0;
+//         i < maxFilterSwapAmounts && filterSwapAmount.gt(bnum(1)); // Stop for values less than 1 wei
+//         // TODO: stop for values of swapAmount less than the cost of adding a new pool to the swap
+//         ++i
+//     ) {
+//         for (let j = 0; j < paths.length; ++j) {
+//             paths[j].filterEffectivePrice = getEffectivePriceSwapForPath(
+//                 pools,
+//                 paths[j],
+//                 swapType,
+//                 filterSwapAmount
+//             );
+//         }
+//         // Sort paths based on lowest effectivePrice
+//         let sortedPaths = [...paths].sort((a, b) => {
+//             return b.filterEffectivePrice
+//                 .minus(a.filterEffectivePrice)
+//                 .toNumber();
+//         });
+//         // Add best maxPools paths to filteredPaths if path not already present
+//         for (let j = 0; j < maxPools && j < paths.length; ++j) {
+//             if (!filteredPathIds.includes(sortedPaths[j].id)) {
+//                 filteredPathIds.push(sortedPaths[j].id);
+//                 filteredPaths.push(sortedPaths[j]);
+//             }
+//         }
+//         filterSwapAmount = filterSwapAmount.div(filterSwapAmountsRatio);
+//     }
+//     console.log('maxLiquidityAvailable: ' + maxLiquidityAvailable.toString());
+//     console.log('#paths before filter: ' + paths.length.toString());
+//     console.log('#paths after filter : ' + filteredPaths.length.toString());
+//     return filteredPaths;
+// }
 
 /* TODO: review
 < INPUTS >
@@ -571,8 +571,6 @@ function iterateSwapAmounts(
     exceedingAmounts: BigNumber[],
     pathLimitAmounts: BigNumber[]
 ): [BigNumber[], BigNumber[]] {
-    // TODO define priceErrorTolerance in config file or in main file
-    let priceErrorTolerance = bnum(0.00001); // 0.001% of tolerance -> this does not change much execution time as convergence is fast
     let priceError = bnum(1); // Initialize priceError just so that while starts
     let prices = [];
     // Since this is the beginning of an iteration with a new set of paths, we
@@ -586,14 +584,12 @@ function iterateSwapAmounts(
     // paths.
     for (let i = 0; i < swapAmounts.length; ++i) {
         if (swapAmounts[i].isZero()) {
-            // Very small amount: TODO put in config file
-            const epsilon = totalSwapAmount.times(bnum(10 ** -6));
+            const epsilon = totalSwapAmount.times(infinitesimal);
             swapAmounts[i] = epsilon;
             exceedingAmounts[i] = exceedingAmounts[i].plus(epsilon);
         }
         if (exceedingAmounts[i].isZero()) {
-            // Very small amount: TODO put in config file
-            const epsilon = totalSwapAmount.times(bnum(10 ** -6));
+            const epsilon = totalSwapAmount.times(infinitesimal);
             swapAmounts[i] = swapAmounts[i].minus(epsilon); // Very small amount
             exceedingAmounts[i] = exceedingAmounts[i].minus(epsilon);
         }

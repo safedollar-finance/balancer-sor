@@ -11,6 +11,7 @@ import {
     SwapV2,
 } from './types';
 import { MAX_IN_RATIO, MAX_OUT_RATIO, bnum, scale } from './bmath';
+import { allowAddRemoveLiquidity } from './config';
 import * as stableMath from './poolMath/stableMath';
 import * as weightedMath from './poolMath/weightedMath';
 import * as weightedSolidity from './solidityHelpers/pools/weighted';
@@ -1111,8 +1112,9 @@ export function filterPools(
 
     allPools.forEach(pool => {
         let tokenListSet = new Set(pool.tokensList);
-        // we add the BPT as well as we can join/exit as part of the multihop
-        tokenListSet.add(pool.id);
+        // Depending on config file, we add the BPT as well as
+        // we can join/exit as part of the multihop
+        if (allowAddRemoveLiquidity) tokenListSet.add(pool.id);
         disabledTokens.forEach(token => tokenListSet.delete(token.address));
 
         if (
@@ -1177,11 +1179,12 @@ export function sortPoolsMostLiquid(
 
         for (let k in poolsTokenInNoTokenOut) {
             // If this pool has hopTokens[i] calculate its normalized liquidity
-            if (
-                new Set(poolsTokenInNoTokenOut[k].tokensList)
-                    .add(poolsTokenInNoTokenOut[k].id)
-                    .has(hopTokens[i])
-            ) {
+            let tokens = new Set(poolsTokenInNoTokenOut[k].tokensList);
+            // Depending on config file, we add the BPT as well as
+            // we can join/exit as part of the multihop
+            if (allowAddRemoveLiquidity)
+                tokens.add(poolsTokenInNoTokenOut[k].id);
+            if (tokens.has(hopTokens[i])) {
                 let normalizedLiquidity = getNormalizedLiquidity(
                     parsePoolPairData(
                         poolsTokenInNoTokenOut[k],
@@ -1211,11 +1214,12 @@ export function sortPoolsMostLiquid(
 
         for (let k in poolsTokenOutNoTokenIn) {
             // If this pool has hopTokens[i] calculate its normalized liquidity
-            if (
-                new Set(poolsTokenOutNoTokenIn[k].tokensList)
-                    .add(poolsTokenOutNoTokenIn[k].id)
-                    .has(hopTokens[i])
-            ) {
+            let tokens = new Set(poolsTokenOutNoTokenIn[k].tokensList);
+            // Depending on config file, we add the BPT as well as
+            // we can join/exit as part of the multihop
+            if (allowAddRemoveLiquidity)
+                tokens.add(poolsTokenOutNoTokenIn[k].id);
+            if (tokens.has(hopTokens[i])) {
                 let normalizedLiquidity = getNormalizedLiquidity(
                     parsePoolPairData(
                         poolsTokenOutNoTokenIn[k],

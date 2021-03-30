@@ -1,5 +1,6 @@
 import { BigNumber } from '../utils/bignumber';
 import { bnum } from '../bmath';
+import { infinitesimal } from '../config';
 // All functions are adapted from the solidity ones to be found on:
 // https://github.com/balancer-labs/balancer-core-v2/blob/master/contracts/pools/stable/StableMath.sol
 
@@ -464,11 +465,9 @@ export function _exactBPTInForTokenOut(amount, poolPairData): BigNumber {
 //////////////////////
 
 export function _derivative(func: Function, amount, poolPairData): BigNumber {
-    const INFINITESIMAL = bnum(10 ** -6); // Todo: put in config file
-
     // If amount is zero we have to change it to a small value otherwise the calculation
     // below won't work as delta will also be 0 and we'll have 0/0
-    if (amount.lt(INFINITESIMAL)) amount = INFINITESIMAL;
+    if (amount.lt(infinitesimal)) amount = infinitesimal;
     let x = amount;
     let delta = x.times(0.0001);
     let prevDerivative = bnum(0);

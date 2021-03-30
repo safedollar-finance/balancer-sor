@@ -265,105 +265,105 @@ export async function getV1Swap(
         hopTokens
     );
 
-    ///////////// Start - Just for testing BPTForTokensZeroPriceImpact /////
-    let pool = pools[Object.keys(pools)[0]]; // Get first pool
-    let balances = [];
-    let decimals = [];
-    let normalizedWeights = [];
-    let amounts = [];
+    // ///////////// Start - Just for testing BPTForTokensZeroPriceImpact /////
+    // let pool = pools[Object.keys(pools)[0]]; // Get first pool
+    // let balances = [];
+    // let decimals = [];
+    // let normalizedWeights = [];
+    // let amounts = [];
 
-    // bptTotalSupply is not scaled above (as it's not used in SOR V1)
-    let bptTotalSupply = new FixedPointNumber(pool.balanceBpt);
-    bptTotalSupply = new FixedPointNumber(
-        bptTotalSupply.times(new FixedPointNumber(10 ** 18))
-    );
-    let swapFee = new FixedPointNumber(pool.swapFee);
-    for (let i = 0; i < pool.tokens.length; i++) {
-        let decimal = pool.tokens[i].decimals;
-        decimals.push(decimal);
-        let balance = new FixedPointNumber(pool.tokens[i].balance);
-        balances.push(balance);
-        let amount = new FixedPointNumber(
-            balance.div(new FixedPointNumber(100))
-        ); // We are considering a proportional add/remove of 1% of the balances
-        amounts.push(amount);
-        normalizedWeights.push(
-            new FixedPointNumber(
-                pool.tokens[i].denormWeight
-                    .div(pool.totalWeight)
-                    .times(new FixedPointNumber(10 ** 18))
-            )
-        );
-    }
+    // // bptTotalSupply is not scaled above (as it's not used in SOR V1)
+    // let bptTotalSupply = new FixedPointNumber(pool.balanceBpt);
+    // bptTotalSupply = new FixedPointNumber(
+    //     bptTotalSupply.times(new FixedPointNumber(10 ** 18))
+    // );
+    // let swapFee = new FixedPointNumber(pool.swapFee);
+    // for (let i = 0; i < pool.tokens.length; i++) {
+    //     let decimal = pool.tokens[i].decimals;
+    //     decimals.push(decimal);
+    //     let balance = new FixedPointNumber(pool.tokens[i].balance);
+    //     balances.push(balance);
+    //     let amount = new FixedPointNumber(
+    //         balance.div(new FixedPointNumber(100))
+    //     ); // We are considering a proportional add/remove of 1% of the balances
+    //     amounts.push(amount);
+    //     normalizedWeights.push(
+    //         new FixedPointNumber(
+    //             pool.tokens[i].denormWeight
+    //                 .div(pool.totalWeight)
+    //                 .times(new FixedPointNumber(10 ** 18))
+    //         )
+    //     );
+    // }
 
-    let BPTForTokensZPI = BPTForTokensZeroPriceImpact(
-        balances,
-        decimals,
-        normalizedWeights,
-        [...amounts], // passing copy as somehow BPTForTokensZeroPriceImpact is changing amounts type from FixedPoint to BigNumber
-        bptTotalSupply
-    );
+    // let BPTForTokensZPI = BPTForTokensZeroPriceImpact(
+    //     balances,
+    //     decimals,
+    //     normalizedWeights,
+    //     [...amounts], // passing copy as somehow BPTForTokensZeroPriceImpact is changing amounts type from FixedPoint to BigNumber
+    //     bptTotalSupply
+    // );
 
-    let BPTForTokensJoin = _exactTokensInForBPTOut(
-        balances,
-        normalizedWeights,
-        amounts,
-        bptTotalSupply,
-        swapFee
-    );
+    // let BPTForTokensJoin = _exactTokensInForBPTOut(
+    //     balances,
+    //     normalizedWeights,
+    //     amounts,
+    //     bptTotalSupply,
+    //     swapFee
+    // );
 
-    let BPTForTokensExit = _bptInForExactTokensOut(
-        balances,
-        normalizedWeights,
-        amounts,
-        bptTotalSupply,
-        swapFee
-    );
+    // let BPTForTokensExit = _bptInForExactTokensOut(
+    //     balances,
+    //     normalizedWeights,
+    //     amounts,
+    //     bptTotalSupply,
+    //     swapFee
+    // );
 
-    // This has to be true for a proportional join/exit, except
-    // for rounding errors (which should always be in favor of the pool)
-    // BPTForTokensExit = BPTForTokensZPI = BPTForTokensJoin
-    console.log(
-        'All three numbers below should be the same (except for rounding errors): '
-    );
-    console.log(BPTForTokensJoin.toNumber());
-    console.log(BPTForTokensZPI.toNumber());
-    console.log(BPTForTokensExit.toNumber());
+    // // This has to be true for a proportional join/exit, except
+    // // for rounding errors (which should always be in favor of the pool)
+    // // BPTForTokensExit = BPTForTokensZPI = BPTForTokensJoin
+    // console.log(
+    //     'All three numbers below should be the same (except for rounding errors): '
+    // );
+    // console.log(BPTForTokensJoin.toNumber());
+    // console.log(BPTForTokensZPI.toNumber());
+    // console.log(BPTForTokensExit.toNumber());
 
-    // To simulate a non-proportional join/exit we just zero one of the amounts:
-    amounts[0] = new FixedPointNumber(0);
-    let BPTForTokensZPI_NP = BPTForTokensZeroPriceImpact(
-        balances,
-        decimals,
-        normalizedWeights,
-        [...amounts], // passing copy as somehow BPTForTokensZeroPriceImpact is changing amounts type from FixedPoint to BigNumber
-        bptTotalSupply
-    );
+    // // To simulate a non-proportional join/exit we just zero one of the amounts:
+    // amounts[0] = new FixedPointNumber(0);
+    // let BPTForTokensZPI_NP = BPTForTokensZeroPriceImpact(
+    //     balances,
+    //     decimals,
+    //     normalizedWeights,
+    //     [...amounts], // passing copy as somehow BPTForTokensZeroPriceImpact is changing amounts type from FixedPoint to BigNumber
+    //     bptTotalSupply
+    // );
 
-    let BPTForTokensJoin_NP = _exactTokensInForBPTOut(
-        balances,
-        normalizedWeights,
-        amounts,
-        bptTotalSupply,
-        swapFee
-    );
+    // let BPTForTokensJoin_NP = _exactTokensInForBPTOut(
+    //     balances,
+    //     normalizedWeights,
+    //     amounts,
+    //     bptTotalSupply,
+    //     swapFee
+    // );
 
-    let BPTForTokensExit_NP = _bptInForExactTokensOut(
-        balances,
-        normalizedWeights,
-        amounts,
-        bptTotalSupply,
-        swapFee
-    );
-    // This has to be true for a non-proportional join/exit:
-    // BPTForTokensExit_NP > BPTForTokensZPI_NP > BPTForTokensJoin_NP
+    // let BPTForTokensExit_NP = _bptInForExactTokensOut(
+    //     balances,
+    //     normalizedWeights,
+    //     amounts,
+    //     bptTotalSupply,
+    //     swapFee
+    // );
+    // // This has to be true for a non-proportional join/exit:
+    // // BPTForTokensExit_NP > BPTForTokensZPI_NP > BPTForTokensJoin_NP
 
-    console.log('Three numbers below should be in ascending order: ');
-    console.log(BPTForTokensJoin_NP.toNumber());
-    console.log(BPTForTokensZPI_NP.toNumber());
-    console.log(BPTForTokensExit_NP.toNumber());
+    // console.log('Three numbers below should be in ascending order: ');
+    // console.log(BPTForTokensJoin_NP.toNumber());
+    // console.log(BPTForTokensZPI_NP.toNumber());
+    // console.log(BPTForTokensExit_NP.toNumber());
 
-    ///////////// End - Just for testing BPTForTokensZeroPriceImpact /////
+    // ///////////// End - Just for testing BPTForTokensZeroPriceImpact /////
 
     const parsePoolDataEnd = performance.now();
     const processPathsStart = performance.now();
