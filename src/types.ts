@@ -10,16 +10,26 @@ export interface PoolPairData {
     tokenOut: string;
     balanceIn?: BigNumber;
     balanceOut?: BigNumber;
-    weightIn?: BigNumber; // Weights are only defined for weighted pools
-    weightOut?: BigNumber; // Weights are only defined for weighted pools
-    swapFee: BigNumber;
-    allBalances: BigNumber[]; // Only for stable pools
-    invariant?: BigNumber; // Only for stable pools
-    amp?: BigNumber; // Only for stable pools
-    tokenIndexIn?: number; // Only for stable pools
-    tokenIndexOut?: number; // Only for stable pools
     decimalsIn: number;
     decimalsOut: number;
+    swapFee: BigNumber;
+
+    // Only for weigthed pools
+    weightIn?: BigNumber;
+    weightOut?: BigNumber;
+
+    // Only for stable pools
+    allBalances: BigNumber[];
+    invariant?: BigNumber;
+    amp?: BigNumber;
+    tokenIndexIn?: number;
+    tokenIndexOut?: number;
+
+    // Only for element pools
+    lpShares?: BigNumber;
+    time?: BigNumber;
+    principalToken?: string;
+    baseToken?: string;
 }
 
 export interface Path {
@@ -48,11 +58,20 @@ export interface SubGraphPools {
 export interface SubGraphPool {
     id: string;
     swapFee: string;
-    amp: string;
     totalWeight: string;
     balanceBpt: string;
     tokens: SubGraphToken[];
     tokensList: string[];
+    type?: string;
+
+    // Only for stable pools
+    amp: string;
+
+    // Only for element pools
+    lpShares?: BigNumber;
+    time?: BigNumber;
+    principalToken?: string;
+    baseToken?: string;
 }
 
 export interface SubGraphToken {
