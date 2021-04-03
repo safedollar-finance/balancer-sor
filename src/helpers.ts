@@ -24,6 +24,10 @@ export function getLimitAmountSwap(
     poolPairData: PoolPairData,
     swapType: string
 ): BigNumber {
+    // TODO: this function should also be defined by the pool class
+    // TODO: Add following limits for Element:
+    // swapExactIn: Ai < (Bi**(1-t)+Bo**(1-t))**(1/(1-t))-Bi
+    // swapExactOut: no limit
     // We multiply ratios by 10**-18 because we are in normalized space
     // so 0.5 should be 0.5 and not 500000000000000000
     // TODO: update bmath to use everything normalized
