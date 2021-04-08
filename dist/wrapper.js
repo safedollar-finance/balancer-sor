@@ -39,9 +39,9 @@ const bignumber_1 = require('./utils/bignumber');
 const bmath_1 = require('./bmath');
 const costToken_1 = require('./costToken');
 const multicall_1 = require('./multicall');
-const pools_1 = require('../src/pools');
-const sorClass_1 = require('../src/sorClass');
-const helpersClass_1 = require('../src/helpersClass');
+const pools_1 = require('./pools');
+const sorClass_1 = require('./sorClass');
+const helpersClass_1 = require('./helpersClass');
 const types_1 = require('./types');
 class SOR {
     constructor(
