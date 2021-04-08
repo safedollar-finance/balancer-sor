@@ -38,3 +38,6 @@ var wrapper_1 = require('./wrapper');
 exports.SOR = wrapper_1.SOR;
 __export(require('./config'));
 __export(require('./types'));
+__export(require('./helpersClass'));
+__export(require('./pools'));
+__export(require('./sorClass'));
