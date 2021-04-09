@@ -43,7 +43,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 const lodash_1 = __importDefault(require('lodash'));
 const contracts_1 = require('@ethersproject/contracts');
 const abi_1 = require('@ethersproject/abi');
-const multicall_json_1 = __importDefault(require('../abi/multicall.json'));
+const Multicall_json_1 = __importDefault(require('../abi/Multicall.json'));
 function call(provider, abi, call, options) {
     return __awaiter(this, void 0, void 0, function*() {
         const contract = new contracts_1.Contract(call[0], abi, provider);
@@ -60,7 +60,7 @@ function multicall(multiAddress, provider, abi, calls, options) {
     return __awaiter(this, void 0, void 0, function*() {
         const multi = new contracts_1.Contract(
             multiAddress,
-            multicall_json_1.default,
+            Multicall_json_1.default,
             provider
         );
         const itf = new abi_1.Interface(abi);
