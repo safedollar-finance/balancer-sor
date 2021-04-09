@@ -43,23 +43,18 @@ Object.defineProperty(exports, '__esModule', { value: true });
 const bmath_1 = require('./bmath');
 const multicaller_1 = require('./utils/multicaller');
 const lodash_1 = __importDefault(require('lodash'));
-const Vault_json_1 = __importDefault(require('./abi/Vault.json'));
-const weightedPoolAbi_json_1 = __importDefault(
-    require('./pools/weightedPool/weightedPoolAbi.json')
-);
-const stablePoolAbi_json_1 = __importDefault(
-    require('./pools/stablePool/stablePoolAbi.json')
-);
 // Combine all the ABIs and remove duplicates
-exports.abis = Object.values(
-    Object.fromEntries(
-        [
-            ...Vault_json_1.default,
-            ...weightedPoolAbi_json_1.default,
-            ...stablePoolAbi_json_1.default,
-        ].map(row => [row.name, row])
-    )
-);
+exports.abis = Object.values(() => {
+    const vaultAbi = require('./abi/Vault.json');
+    const weightedPoolAbi = require('./pools/weightedPool/weightedPoolAbi.json');
+    const stablePoolAbi = require('./pools/stablePool/stablePoolAbi.json');
+    return Object.fromEntries(
+        [...vaultAbi, ...weightedPoolAbi, ...stablePoolAbi].map(row => [
+            row.name,
+            row,
+        ])
+    );
+});
 // Load pools data with multicalls
 function getOnChainBalances(
     subgraphPools,

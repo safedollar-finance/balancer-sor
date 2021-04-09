@@ -3,19 +3,20 @@ import { SubGraphPoolsBase } from './types';
 import { scale, bnum } from './bmath';
 import { Multicaller } from './utils/multicaller';
 import _ from 'lodash';
-import { default as vaultAbi } from './abi/Vault.json';
-import { default as weightedPoolAbi } from './pools/weightedPool/weightedPoolAbi.json';
-import { default as stablePoolAbi } from './pools/stablePool/stablePoolAbi.json';
 
 // Combine all the ABIs and remove duplicates
-export const abis = Object.values(
-    Object.fromEntries(
+export const abis = Object.values(() => {
+    const vaultAbi = require('./abi/Vault.json');
+    const weightedPoolAbi = require('./pools/weightedPool/weightedPoolAbi.json');
+    const stablePoolAbi = require('./pools/stablePool/stablePoolAbi.json');
+
+    return Object.fromEntries(
         [...vaultAbi, ...weightedPoolAbi, ...stablePoolAbi].map(row => [
             row.name,
             row,
         ])
-    )
-);
+    );
+});
 
 // Load pools data with multicalls
 export async function getOnChainBalances(
