@@ -43,7 +43,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 const bmath_1 = require('./bmath');
 const multicaller_1 = require('./utils/multicaller');
 const lodash_1 = __importDefault(require('lodash'));
-const Vault_json_1 = __importDefault(require('./abi/Vault.json'));
+const vault_json_1 = __importDefault(require('./abi/vault.json'));
 const weightedPoolAbi_json_1 = __importDefault(
     require('./pools/weightedPool/weightedPoolAbi.json')
 );
@@ -54,7 +54,7 @@ const stablePoolAbi_json_1 = __importDefault(
 exports.abis = Object.values(
     Object.fromEntries(
         [
-            ...Vault_json_1.default,
+            ...vault_json_1.default,
             ...weightedPoolAbi_json_1.default,
             ...stablePoolAbi_json_1.default,
         ].map(row => [row.name, row])
