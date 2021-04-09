@@ -5,18 +5,14 @@ import { Multicaller } from './utils/multicaller';
 import _ from 'lodash';
 
 // Combine all the ABIs and remove duplicates
-export const abis = Object.values(() => {
-    const vaultAbi = require('./abi/Vault.json');
-    const weightedPoolAbi = require('./pools/weightedPool/weightedPoolAbi.json');
-    const stablePoolAbi = require('./pools/stablePool/stablePoolAbi.json');
-
-    return Object.fromEntries(
-        [...vaultAbi, ...weightedPoolAbi, ...stablePoolAbi].map(row => [
-            row.name,
-            row,
-        ])
-    );
-});
+// export const abis = Object.values(() => {
+//     return Object.fromEntries(
+//         [...vaultAbi, ...weightedPoolAbi, ...stablePoolAbi].map(row => [
+//             row.name,
+//             row,
+//         ])
+//     );
+// });
 
 // Load pools data with multicalls
 export async function getOnChainBalances(
@@ -28,6 +24,18 @@ export async function getOnChainBalances(
     // ): Promise<Pool[]> {
     console.time('getPools');
     if (subgraphPools.pools.length === 0) return subgraphPools;
+
+    const vaultAbi = require('./abi/Vault.json');
+    const weightedPoolAbi = require('./pools/weightedPool/weightedPoolAbi.json');
+    const stablePoolAbi = require('./pools/stablePool/stablePoolAbi.json');
+    const abis = Object.values(
+        Object.fromEntries(
+            [...vaultAbi, ...weightedPoolAbi, ...stablePoolAbi].map(row => [
+                row.name,
+                row,
+            ])
+        )
+    );
 
     const multiPool = new Multicaller(multiAddress, provider, abis);
 
