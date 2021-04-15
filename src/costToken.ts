@@ -31,7 +31,7 @@ export async function getOnChainReserves(
     PairAddr: string,
     provider: BaseProvider
 ): Promise<any[]> {
-    const uniswapV2PairAbi = require('./abi/UniswapV2Pair.json');
+    const uniswapV2PairAbi = require('./abis/UniswapV2Pair.json');
 
     const pairContract = new Contract(PairAddr, uniswapV2PairAbi, provider);
 

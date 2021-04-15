@@ -20,7 +20,7 @@ export async function multicall(
     calls: any[],
     options?
 ) {
-    const multicallAbi = require('../abi/Multicall.json');
+    const multicallAbi = require('../abis/Multicall.json');
     const multi = new Contract(multiAddress, multicallAbi, provider);
     const itf = new Interface(abi);
     try {

@@ -15,7 +15,7 @@ export async function getOnChainBalances(
     console.time('getPools');
     if (subgraphPools.pools.length === 0) return subgraphPools;
 
-    const vaultAbi = require('./abi/Vault.json');
+    const vaultAbi = require('./abis/Vault.json');
     const weightedPoolAbi = require('./pools/weightedPool/weightedPoolAbi.json');
     const stablePoolAbi = require('./pools/stablePool/stablePoolAbi.json');
     const abis = Object.values(

@@ -61,7 +61,7 @@ function getAddress(tokenA, tokenB) {
 exports.getAddress = getAddress;
 function getOnChainReserves(PairAddr, provider) {
     return __awaiter(this, void 0, void 0, function*() {
-        const uniswapV2PairAbi = require('./abi/UniswapV2Pair.json');
+        const uniswapV2PairAbi = require('./abis/UniswapV2Pair.json');
         const pairContract = new contracts_1.Contract(
             PairAddr,
             uniswapV2PairAbi,

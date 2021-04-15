@@ -57,7 +57,7 @@ function call(provider, abi, call, options) {
 exports.call = call;
 function multicall(multiAddress, provider, abi, calls, options) {
     return __awaiter(this, void 0, void 0, function*() {
-        const multicallAbi = require('../abi/Multicall.json');
+        const multicallAbi = require('../abis/Multicall.json');
         const multi = new contracts_1.Contract(
             multiAddress,
             multicallAbi,
