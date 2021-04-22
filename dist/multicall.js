@@ -79,7 +79,11 @@ function getOnChainBalances(
                 'getPoolTokens',
                 [pool.id]
             );
-            multiPool.call(`${pool.id}.swapFee`, pool.address, 'getSwapFee');
+            multiPool.call(
+                `${pool.id}.swapFee`,
+                pool.address,
+                'getSwapFeePercentage'
+            );
             multiPool.call(
                 `${pool.id}.totalSupply`,
                 pool.address,
