@@ -55,9 +55,18 @@ export function filterPoolsOfInterest(
         disabledTokens = disabledOptions.disabledTokens;
 
     allPools.forEach(pool => {
+        if (bnum(pool.totalShares).lt(bnum('0.00000000001'))) {
+            console.log(`Filtering pool: ${pool.id}`);
+            return;
+        }
+
+        // if (!isValidTokens(pool.tokens))
+        //     return;
+
         if (pool.tokensList.length === 0 || pool.tokens[0].balance === '0') {
             return;
         }
+
         let newPool: WeightedPool | StablePool | ElementPool;
 
         // TODO - Update for new Schema
