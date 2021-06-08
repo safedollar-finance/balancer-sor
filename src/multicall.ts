@@ -35,6 +35,10 @@ export async function getOnChainBalances(
     let pools = {};
 
     subgraphPools.pools.forEach(pool => {
+        if (pool.poolType === 'Stable') {
+            return;
+        }
+
         _.set(pools, `${pool.id}.id`, pool.id);
         multiPool.call(`${pool.id}.poolTokens`, vaultAddress, 'getPoolTokens', [
             pool.id,
@@ -73,6 +77,10 @@ export async function getOnChainBalances(
     pools = await multiPool.execute(pools);
 
     subgraphPools.pools.forEach(subgraphPool => {
+        if (subgraphPool.poolType === 'Stable') {
+            return;
+        }
+
         const onChainResult = pools[subgraphPool.id];
         subgraphPool.swapFee = scale(
             bnum(onChainResult.swapFee),

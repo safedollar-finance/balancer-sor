@@ -75,6 +75,9 @@ function getOnChainBalances(
         );
         let pools = {};
         subgraphPools.pools.forEach(pool => {
+            if (pool.poolType === 'Stable') {
+                return;
+            }
             lodash_1.default.set(pools, `${pool.id}.id`, pool.id);
             multiPool.call(
                 `${pool.id}.poolTokens`,
@@ -121,6 +124,9 @@ function getOnChainBalances(
         });
         pools = yield multiPool.execute(pools);
         subgraphPools.pools.forEach(subgraphPool => {
+            if (subgraphPool.poolType === 'Stable') {
+                return;
+            }
             const onChainResult = pools[subgraphPool.id];
             subgraphPool.swapFee = bmath_1
                 .scale(bmath_1.bnum(onChainResult.swapFee), -18)
