@@ -782,7 +782,8 @@ export function assertResults(
         wrapperSwapData.returnAmount.toString(),
         v2SwapData.returnAmount
             .times(bnum(10 ** testData.tradeInfo.ReturnAmountDecimals))
-            .toString(),
+            .toString()
+            .split('.')[0],
         `Wrapper should have same amount as helper.`
     );
 
@@ -1041,6 +1042,7 @@ export async function getV2Swap(
     swapAmount: BigNumber,
     gasPrice: BigNumber,
     returnAmountDecimals: number,
+    swapCost: BigNumber,
     disabledOptions: DisabledOptions = {
         isOverRide: false,
         disabledTokens: [],
@@ -1055,7 +1057,6 @@ export async function getV2Swap(
     if (swapType === 'swapExactOut' || swapType === SwapTypes.SwapExactOut)
         swapTypeCorrect = SwapTypes.SwapExactOut;
 
-    const swapCost = new BigNumber('100000'); // A pool swap costs approx 100000 gas
     const fullSwapStart = performance.now();
 
     let costOutputToken: BigNumber = costOutputTokenOveride.overRideCost;
@@ -1153,6 +1154,7 @@ export async function getWrapperSwap(
     costOutputToken: BigNumber,
     gasPrice: BigNumber,
     provider: JsonRpcProvider,
+    swapCost: BigNumber = new BigNumber('100000'),
     disabledOptions: DisabledOptions = { isOverRide: false, disabledTokens: [] }
 ): Promise<SwapInfo> {
     const sor = new sorv2.SOR(
@@ -1161,6 +1163,7 @@ export async function getWrapperSwap(
         maxPools,
         1,
         JSON.parse(JSON.stringify(pools)),
+        swapCost,
         disabledOptions
     );
 

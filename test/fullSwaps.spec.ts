@@ -48,6 +48,7 @@ describe('Tests full swaps against known values', () => {
         const tokenIn = WETH;
         const tokenOut = ANT;
         const costOutputToken = new BigNumber(0);
+        const swapCost = new BigNumber('100000');
 
         const swapInfo = await getV2Swap(
             provider,
@@ -59,6 +60,7 @@ describe('Tests full swaps against known values', () => {
             swapAmount,
             gasPrice,
             18,
+            swapCost,
             {
                 isOverRide: false,
                 disabledTokens: [],
@@ -84,6 +86,7 @@ describe('Tests full swaps against known values', () => {
         const tokenIn = WETH;
         const tokenOut = ANT;
         const costOutputToken = new BigNumber(0);
+        const swapCost = new BigNumber('100000');
 
         const swapInfo = await getV2Swap(
             provider,
@@ -95,6 +98,7 @@ describe('Tests full swaps against known values', () => {
             swapAmount,
             gasPrice,
             18,
+            swapCost,
             {
                 isOverRide: false,
                 disabledTokens: [],
@@ -178,6 +182,7 @@ describe('Tests full swaps against known values', () => {
         const swapType = 'swapExactIn';
         const noPools = 4;
         const swapAmt = new BigNumber('100000000000000000');
+        const swapCost = new BigNumber('100000');
 
         const disabledOptions: DisabledOptions = {
             isOverRide: true,
@@ -219,6 +224,7 @@ describe('Tests full swaps against known values', () => {
             amountNormalised,
             testData.tradeInfo.GasPrice,
             testData.tradeInfo.ReturnAmountDecimals,
+            swapCost,
             disabledOptions,
             testSettings.costOutputTokenOveride
         );
@@ -351,7 +357,7 @@ describe('Tests full swaps against known values', () => {
             tradeInfo,
         };
 
-        const [v1SwapData, v2SwapData] = await compareTest(
+        const [v1SwapData, v2SwapData, wrapperSwapData] = await compareTest(
             name,
             provider,
             testData,
@@ -364,11 +370,10 @@ describe('Tests full swaps against known values', () => {
                 },
             }
         );
-        const total = v2SwapData.returnAmount;
         const swaps = v2SwapData.swaps;
 
         // The expected test results are from previous version
-        assert.equal(total.toString(), '0.099973088127002008');
+        assert.equal(wrapperSwapData.returnAmount.toString(), '100077');
         assert.equal(swaps.length, 1);
         assert.equal(
             swaps[0][0].pool,
@@ -409,7 +414,7 @@ describe('Tests full swaps against known values', () => {
             tradeInfo,
         };
 
-        const [v1SwapData, v2SwapData] = await compareTest(
+        const [v1SwapData, v2SwapData, wrapperSwapData] = await compareTest(
             name,
             provider,
             testData,
@@ -426,7 +431,10 @@ describe('Tests full swaps against known values', () => {
         const swaps = v2SwapData.swaps;
 
         // The expected test results are from previous version
-        assert.equal(total.toString(), '0.100026919117436692');
+        assert.equal(
+            wrapperSwapData.returnAmount.toString(),
+            '99922537274909963'
+        );
         assert.equal(swaps.length, 1);
         assert.equal(
             swaps[0][0].pool,
@@ -509,7 +517,7 @@ describe('Tests full swaps against known values', () => {
         assert.equal(swaps[0][0].tokenOut, USDC);
         assert.equal(
             swaps[0][0].swapAmount,
-            '0.6922565054733028450722693839594802'
+            '0.6922565054733662840722693839594802'
         );
         assert.equal(
             swaps[1][0].pool,
@@ -519,7 +527,7 @@ describe('Tests full swaps against known values', () => {
         assert.equal(swaps[1][0].tokenOut, USDC);
         assert.equal(
             swaps[1][0].swapAmount,
-            '0.0777434945266971549277306160405198'
+            '0.0777434945266337159277306160405198'
         );
     }).timeout(10000);
 
@@ -572,7 +580,7 @@ describe('Tests full swaps against known values', () => {
         const swaps = v2SwapData.swaps;
 
         // The expected test results are from previous version
-        assert.equal(total.toString(), '100.687676187071622829');
+        assert.equal(total.toString(), '100.600435828064537174');
         assert.equal(swaps.length, 3);
         assert.equal(
             swaps[0][0].pool,
@@ -582,7 +590,7 @@ describe('Tests full swaps against known values', () => {
         assert.equal(swaps[0][0].tokenOut, USDC);
         assert.equal(
             swaps[0][0].swapAmount,
-            '82.3648872742060488825550534281238557568302367743795256'
+            '84.2447735287294583056413294280975742'
         );
         assert.equal(
             swaps[1][0].pool,
@@ -592,7 +600,7 @@ describe('Tests full swaps against known values', () => {
         assert.equal(swaps[1][0].tokenOut, USDC);
         assert.equal(
             swaps[1][0].swapAmount,
-            '16.5128308714673736601609054311512561552497632256204744'
+            '14.8227784005087550464286705719024258'
         );
         assert.equal(
             swaps[2][0].pool,
@@ -600,10 +608,7 @@ describe('Tests full swaps against known values', () => {
         );
         assert.equal(swaps[2][0].tokenIn, DAI);
         assert.equal(swaps[2][0].tokenOut, USDC);
-        assert.equal(
-            swaps[2][0].swapAmount,
-            '1.85438185432657745728404114072488808792'
-        );
+        assert.equal(swaps[2][0].swapAmount, '1.66454807076178664793');
     }).timeout(10000);
 
     it('WBTC>MKR2, swapExactIn', async () => {
