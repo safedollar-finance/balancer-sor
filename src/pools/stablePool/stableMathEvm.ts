@@ -187,6 +187,12 @@ export function _exactTokensInForBPTOut(
     fpBptTotalSupply: BigNumberFp,
     fpSwapFeePercentage: BigNumberFp
 ): BigNumberFp {
+    // console.log('CHECK')
+    // console.log(fpBalances[0].toString());
+    // console.log(amplificationParameter.toString());
+    // console.log(fpAmountsIn[0].toString());
+    // console.log(fpBptTotalSupply.toString());
+    // console.log(fpSwapFeePercentage.toString());
     // Get current invariant
     const currentInvariant = fromFp(
         calculateInvariant(fpBalances, amplificationParameter)
