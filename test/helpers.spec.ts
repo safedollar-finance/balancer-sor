@@ -16,6 +16,7 @@ describe(`Tests for Helpers.`, () => {
         const tokenIn = '0x6b175474e89094c44da98b954eedeac495271d0f';
         const tokenOut = '0xba100000625a3754423978a60c9317c58a424e3d';
         const swapType = SwapTypes.SwapExactIn;
+        const isRelayerSwap = true;
 
         const swapsV1Format: any = testSwaps.directhops;
 
@@ -32,10 +33,12 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            isRelayerSwap
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
+        assert.isTrue(swapInfo.isRelayerSwap);
         assert.equal(swapInfo.swaps.length, 2);
         assert.equal('1000000000000000000', swapInfo.swapAmount.toString());
         assert.equal('2000000000000000000', swapInfo.returnAmount.toString());
@@ -60,6 +63,7 @@ describe(`Tests for Helpers.`, () => {
         const tokenIn = '0x6b175474e89094c44da98b954eedeac495271d0f';
         const tokenOut = '0x056fd409e1d7a124bd7017459dfea2f387b6d5cd';
         const swapType = SwapTypes.SwapExactIn;
+        const isRelayerSwap = false;
 
         const swapsV1Format: any = testSwaps.multihops;
 
@@ -78,10 +82,12 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            isRelayerSwap
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
+        assert.isFalse(swapInfo.isRelayerSwap);
         assert.equal(swapInfo.swaps.length, 4);
         assert.equal('1000000000000000000', swapInfo.swapAmount.toString());
         assert.equal('2000000000000000000', swapInfo.returnAmount.toString());
@@ -129,7 +135,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -176,7 +183,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -222,7 +230,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -269,7 +278,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -313,7 +323,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         assert.equal(swapInfo.swaps.length, 1);
@@ -350,7 +361,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         assert.equal(swapInfo.swaps.length, 1);
@@ -387,7 +399,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         assert.equal(swapInfo.swaps.length, 1);
@@ -424,7 +437,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         assert.equal(swapInfo.swaps.length, 1);
@@ -458,7 +472,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         assert.equal(swapInfo.swaps.length, 0);
@@ -469,7 +484,8 @@ describe(`Tests for Helpers.`, () => {
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
     });
 
-    it(`Should return marketSp`, () => {
+    it(`Should return marketSp,
+false`, () => {
         const swapAmount = new BigNumber(1);
         const returnAmount = new BigNumber(2);
         const returnAmountConsideringFees = new BigNumber(1.9);
@@ -489,7 +505,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         assert.equal(swapInfo.marketSp, marketSp);
@@ -518,7 +535,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -560,6 +578,7 @@ describe(`Tests for Helpers.`, () => {
             returnAmount,
             returnAmountConsideringFees,
             marketSp,
+            false,
             isEthSwap
         );
 
@@ -597,7 +616,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -639,6 +659,7 @@ describe(`Tests for Helpers.`, () => {
             returnAmount,
             returnAmountConsideringFees,
             marketSp,
+            false,
             isEthSwap
         );
 
@@ -676,7 +697,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -718,6 +740,7 @@ describe(`Tests for Helpers.`, () => {
             returnAmount,
             returnAmountConsideringFees,
             marketSp,
+            false,
             isEthSwap
         );
 
@@ -755,7 +778,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -797,6 +821,7 @@ describe(`Tests for Helpers.`, () => {
             returnAmount,
             returnAmountConsideringFees,
             marketSp,
+            false,
             isEthSwap
         );
 
@@ -835,7 +860,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -884,6 +910,7 @@ describe(`Tests for Helpers.`, () => {
             returnAmount,
             returnAmountConsideringFees,
             marketSp,
+            false,
             isEthSwap
         );
 
@@ -928,7 +955,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -978,6 +1006,7 @@ describe(`Tests for Helpers.`, () => {
             returnAmount,
             returnAmountConsideringFees,
             marketSp,
+            false,
             isEthSwap
         );
 
@@ -1023,7 +1052,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -1072,6 +1102,7 @@ describe(`Tests for Helpers.`, () => {
             returnAmount,
             returnAmountConsideringFees,
             marketSp,
+            false,
             isEthSwap
         );
 
@@ -1116,7 +1147,8 @@ describe(`Tests for Helpers.`, () => {
             tokenOut,
             returnAmount,
             returnAmountConsideringFees,
-            marketSp
+            marketSp,
+            false
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
@@ -1166,6 +1198,7 @@ describe(`Tests for Helpers.`, () => {
             returnAmount,
             returnAmountConsideringFees,
             marketSp,
+            false,
             isEthSwap
         );
 

@@ -17,6 +17,12 @@ export enum SwapPairType {
     HopOut,
 }
 
+export enum PathSwapTypes {
+    TokenSwap,
+    JoinSwap,
+    ExitSwap,
+}
+
 export enum PairTypes {
     BptToToken,
     TokenToBpt,
@@ -105,6 +111,7 @@ export interface SwapInfo {
     tokenIn: string;
     tokenOut: string;
     marketSp: BigNumber;
+    isRelayerSwap: boolean;
 }
 
 export interface PoolDictionary {
@@ -122,6 +129,7 @@ export interface NewPath {
     limitAmount: BigNumber;
     pools: PoolBase[];
     filterEffectivePrice?: BigNumber; // TODO: This is just used for filtering, maybe there is a better way to filter?
+    pathSwapType: PathSwapTypes;
 }
 
 export enum PoolFilter {

@@ -800,8 +800,9 @@ export function assertResults(
         testData.tradeInfo.TokenIn,
         testData.tradeInfo.TokenOut,
         v2SwapData.returnAmount,
-        v2SwapData.returnAmountConsideringFees, // Not needed so just a value
-        wrapperSwapData.marketSp
+        v2SwapData.returnAmountConsideringFees, // Not needed so just a value,
+        wrapperSwapData.marketSp,
+        v2SwapData.isRelayerSwap
     );
 
     // Wrapper and direct SOR code should have the same swaps
@@ -1114,8 +1115,15 @@ export async function getV2Swap(
     let swaps: any,
         total: BigNumber,
         marketSp: BigNumber,
-        totalConsideringFees: BigNumber;
-    [swaps, total, marketSp, totalConsideringFees] = smartOrderRouter(
+        totalConsideringFees: BigNumber,
+        isRelayerSwap: boolean;
+    [
+        swaps,
+        total,
+        marketSp,
+        totalConsideringFees,
+        isRelayerSwap,
+    ] = smartOrderRouter(
         JSON.parse(JSON.stringify(poolsOfInterestDictionary)), // Need to keep original pools for cache
         paths,
         swapTypeCorrect,
@@ -1136,6 +1144,7 @@ export async function getV2Swap(
         returnAmountConsideringFees: totalConsideringFees,
         timeData,
         costOutputToken,
+        isRelayerSwap,
     };
 }
 

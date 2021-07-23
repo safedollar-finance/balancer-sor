@@ -1,7 +1,13 @@
 import { INFINITESIMAL, PRICE_ERROR_TOLERANCE } from './config';
 import { bnum, ZERO, ONE, INFINITY } from './bmath';
 import { BigNumber } from './utils/bignumber';
-import { SwapTypes, NewPath, PoolDictionary, Swap } from './types';
+import {
+    SwapTypes,
+    NewPath,
+    PoolDictionary,
+    Swap,
+    PathSwapTypes,
+} from './types';
 import {
     getHighestLimitAmountsForPaths,
     getEffectivePriceSwapForPath,
@@ -113,7 +119,7 @@ export const smartOrderRouter = (
     totalSwapAmount: BigNumber,
     maxPools: number,
     costReturnToken: BigNumber
-): [Swap[][], BigNumber, BigNumber, BigNumber] => {
+): [Swap[][], BigNumber, BigNumber, BigNumber, boolean] => {
     let bestTotalReturn: BigNumber = new BigNumber(0);
     let bestTotalReturnConsideringFees: BigNumber = new BigNumber(0);
     let totalReturn, totalReturnConsideringFees;
@@ -121,7 +127,7 @@ export const smartOrderRouter = (
 
     // No paths available or totalSwapAmount == 0, return empty solution
     if (paths.length == 0 || totalSwapAmount.isZero()) {
-        return [[], ZERO, ZERO, ZERO];
+        return [[], ZERO, ZERO, ZERO, false];
     }
     // Before we start the main loop, we first check if there is enough liquidity for this totalSwapAmount at all
     let highestLimitAmounts = getHighestLimitAmountsForPaths(paths, maxPools);
@@ -147,7 +153,7 @@ export const smartOrderRouter = (
         break; // No need to keep looping as this number of pools (i) has enough liquidity
     }
     if (initialNumPaths == -1) {
-        return [[], ZERO, ZERO, ZERO]; // Not enough liquidity, return empty
+        return [[], ZERO, ZERO, ZERO, false]; // Not enough liquidity, return empty
     }
 
     // First get the optimal totalReturn to trade 'totalSwapAmount' with
@@ -190,12 +196,20 @@ export const smartOrderRouter = (
             pathIds,
         ] = getBestPathIds(pools, paths, swapType, swapAmounts);
 
+        // This handles case when we have two joinSwap paths as only options
+        let check = newSelectedPaths.length;
+        if (newSelectedPaths.length === 0) break;
+
         // Check if ids are in history of ids, but first sort and stringify to make comparison possible
         // Copy array https://stackoverflow.com/a/42442909
         let sortedPathIdsJSON = JSON.stringify([...pathIds].sort()); // Just to check if this set of paths has already been chosen
         // We now loop to iterateSwapAmounts until we converge. This is not necessary
         // for just 1 path because swapAmount will always be totalSwapAmount
-        while (!historyOfSortedPathIds.includes(sortedPathIdsJSON) && b > 1) {
+        while (
+            !historyOfSortedPathIds.includes(sortedPathIdsJSON) &&
+            b > 1 &&
+            check > 0
+        ) {
             historyOfSortedPathIds.push(sortedPathIdsJSON); // We store all previous paths ids to avoid infinite loops because of local minima
             selectedPaths = newSelectedPaths;
             [swapAmounts, exceedingAmounts] = iterateSwapAmounts(
@@ -272,10 +286,11 @@ export const smartOrderRouter = (
     let lenghtFirstPath;
     let highestSwapAmt = ZERO;
     let largestSwapPath: NewPath;
+    let isRelayerSwap = false;
     bestTotalReturn = ZERO; // Reset totalReturn as this time it will be
     // calculated with the EVM maths so the return is exactly what the user will get
     // after executing the transaction (given there are no front-runners)
-    bestPaths.forEach((path, i) => {
+    bestPaths.forEach((path: NewPath, i) => {
         let swapAmount = bestSwapAmounts[i];
         // 0 swap amounts can occur due to rounding errors but we don't want to pass those on so filter out
         if (swapAmount.isZero()) return;
@@ -317,8 +332,8 @@ export const smartOrderRouter = (
                         ? minAmountOut.toString()
                         : maxAmountIn,
                 maxPrice: maxPrice,
-                tokenInDecimals: path.poolPairData[0].decimalsIn.toString(),
-                tokenOutDecimals: path.poolPairData[0].decimalsOut.toString(),
+                tokenInDecimals: path.poolPairData[0].decimalsIn,
+                tokenOutDecimals: path.poolPairData[0].decimalsOut,
             };
             swaps.push([swap]);
             // Call EVMgetOutputAmountSwap to guarantee pool state is updated
@@ -330,6 +345,13 @@ export const smartOrderRouter = (
             );
         } else {
             // Multi-hop:
+
+            // Create flag for UI to determine if Vault or Relayer should be used
+            if (
+                path.pathSwapType === PathSwapTypes.JoinSwap ||
+                path.pathSwapType === PathSwapTypes.ExitSwap
+            )
+                isRelayerSwap = true;
 
             let swap1 = path.swaps[0];
             let poolSwap1 = pools[swap1.pool];
@@ -383,8 +405,8 @@ export const smartOrderRouter = (
                         ? minAmountOut.toString()
                         : maxAmountIn,
                 maxPrice: maxPrice,
-                tokenInDecimals: path.poolPairData[0].decimalsIn.toString(),
-                tokenOutDecimals: path.poolPairData[0].decimalsOut.toString(),
+                tokenInDecimals: path.poolPairData[0].decimalsIn,
+                tokenOutDecimals: path.poolPairData[0].decimalsOut,
             };
 
             // Add swap from second pool
@@ -398,8 +420,8 @@ export const smartOrderRouter = (
                         ? minAmountOut.toString()
                         : maxAmountIn,
                 maxPrice: maxPrice,
-                tokenInDecimals: path.poolPairData[1].decimalsIn.toString(),
-                tokenOutDecimals: path.poolPairData[1].decimalsOut.toString(),
+                tokenInDecimals: path.poolPairData[1].decimalsIn,
+                tokenOutDecimals: path.poolPairData[1].decimalsOut,
             };
             swaps.push([swap1hop, swap2hop]);
         }
@@ -444,7 +466,13 @@ export const smartOrderRouter = (
         bestTotalReturnConsideringFees = ZERO;
     }
 
-    return [swaps, bestTotalReturn, marketSp, bestTotalReturnConsideringFees];
+    return [
+        swaps,
+        bestTotalReturn,
+        marketSp,
+        bestTotalReturnConsideringFees,
+        isRelayerSwap,
+    ];
 };
 
 //  For a given list of swapAmounts, gets list of pools with best effective price for these amounts
@@ -476,6 +504,15 @@ function getBestPathIds(
         let bestPathIndex = -1;
         let bestEffectivePrice = INFINITY; // Start with worst price possible
         paths.forEach((path, j) => {
+            // With the BatchRelayer simplifications we can only use a joinSwap for a single path
+            // So in simplified terms if there is more than one swap amount being considered we don’t use a joinSwap.
+            if (
+                path.pathSwapType === PathSwapTypes.JoinSwap &&
+                swapAmounts.length > 1
+            ) {
+                return;
+            }
+
             // Do not consider this path if its limit is below swapAmount
             if (path.limitAmount.gte(swapAmount)) {
                 // Calculate effective price of this path for this swapAmount

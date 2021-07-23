@@ -7,6 +7,8 @@ import {
     NewPath,
     Swap,
     PoolBase,
+    PairTypes,
+    PathSwapTypes,
 } from './types';
 import { WeightedPool } from './pools/weightedPool/weightedPool';
 import { StablePool } from './pools/stablePool/stablePool';
@@ -287,6 +289,7 @@ function createDirectPath(
         limitAmount: ZERO,
         poolPairData: [poolPairData],
         pools: [pool],
+        pathSwapType: PathSwapTypes.TokenSwap,
     };
 
     return path;
@@ -318,6 +321,12 @@ function createMultihopPath(
     const poolPairDataFirst = firstPool.parsePoolPairData(tokenIn, hopToken);
     const poolPairDataSecond = secondPool.parsePoolPairData(hopToken, tokenOut);
 
+    let pathSwapType = PathSwapTypes.TokenSwap;
+    if (poolPairDataFirst.pairType === PairTypes.TokenToBpt)
+        pathSwapType = PathSwapTypes.JoinSwap;
+    else if (poolPairDataFirst.pairType === PairTypes.BptToToken)
+        pathSwapType = PathSwapTypes.ExitSwap;
+
     // Path id is the concatenation of the ids of poolFirstHop and poolSecondHop
     const path: NewPath = {
         id: firstPool.id + secondPool.id,
@@ -325,6 +334,7 @@ function createMultihopPath(
         limitAmount: ZERO,
         poolPairData: [poolPairDataFirst, poolPairDataSecond],
         pools: [firstPool, secondPool],
+        pathSwapType: pathSwapType,
     };
 
     return path;
