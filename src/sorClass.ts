@@ -196,8 +196,8 @@ export const smartOrderRouter = (
             pathIds,
         ] = getBestPathIds(pools, paths, swapType, swapAmounts);
 
-        // This handles case when we have two joinSwap paths as only options
-        let check = newSelectedPaths.length;
+        // This handles case when we have no viable paths as options
+        // i.e. Could be because all are joinSwaps
         if (newSelectedPaths.length === 0) break;
 
         // Check if ids are in history of ids, but first sort and stringify to make comparison possible
@@ -205,11 +205,7 @@ export const smartOrderRouter = (
         let sortedPathIdsJSON = JSON.stringify([...pathIds].sort()); // Just to check if this set of paths has already been chosen
         // We now loop to iterateSwapAmounts until we converge. This is not necessary
         // for just 1 path because swapAmount will always be totalSwapAmount
-        while (
-            !historyOfSortedPathIds.includes(sortedPathIdsJSON) &&
-            b > 1 &&
-            check > 0
-        ) {
+        while (!historyOfSortedPathIds.includes(sortedPathIdsJSON) && b > 1) {
             historyOfSortedPathIds.push(sortedPathIdsJSON); // We store all previous paths ids to avoid infinite loops because of local minima
             selectedPaths = newSelectedPaths;
             [swapAmounts, exceedingAmounts] = iterateSwapAmounts(
@@ -345,7 +341,6 @@ export const smartOrderRouter = (
             );
         } else {
             // Multi-hop:
-
             // Create flag for UI to determine if Vault or Relayer should be used
             if (
                 path.pathSwapType === PathSwapTypes.JoinSwap ||
@@ -478,7 +473,7 @@ export const smartOrderRouter = (
 //  For a given list of swapAmounts, gets list of pools with best effective price for these amounts
 //  Always choose best pool for highest swapAmount first, then 2nd swapAmount and so on. This is
 //  because it's best to use the best effective price for the highest amount to be traded
-function getBestPathIds(
+export function getBestPathIds(
     pools: PoolDictionary,
     originalPaths: NewPath[],
     swapType: SwapTypes,
@@ -498,6 +493,7 @@ function getBestPathIds(
         return b.minus(a).toNumber();
     });
 
+    let exitSwapCount = 0;
     for (let i = 0; i < sortedSwapAmounts.length; i++) {
         let swapAmount: BigNumber = sortedSwapAmounts[i];
         // Find path that has best effective price
@@ -506,9 +502,12 @@ function getBestPathIds(
         paths.forEach((path, j) => {
             // With the BatchRelayer simplifications we can only use a joinSwap for a single path
             // So in simplified terms if there is more than one swap amount being considered we don’t use a joinSwap.
+            // Can only ExitSwap a single pool but can combine with other batchSwap paths.
             if (
-                path.pathSwapType === PathSwapTypes.JoinSwap &&
-                swapAmounts.length > 1
+                (path.pathSwapType === PathSwapTypes.JoinSwap &&
+                    swapAmounts.length > 1) ||
+                (path.pathSwapType === PathSwapTypes.ExitSwap &&
+                    exitSwapCount > 0)
             ) {
                 return;
             }
@@ -541,6 +540,10 @@ function getBestPathIds(
 
         if (bestPathIndex === -1) {
             return [[], [], [], []];
+        }
+        // Can only have one exitSwap in trade
+        if (paths[bestPathIndex].pathSwapType === PathSwapTypes.ExitSwap) {
+            exitSwapCount++;
         }
         bestPathIds.push(paths[bestPathIndex].id);
         selectedPaths.push(paths[bestPathIndex]);

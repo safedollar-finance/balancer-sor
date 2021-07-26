@@ -321,10 +321,12 @@ function createMultihopPath(
     const poolPairDataFirst = firstPool.parsePoolPairData(tokenIn, hopToken);
     const poolPairDataSecond = secondPool.parsePoolPairData(hopToken, tokenOut);
 
+    // JoinSwap should always be first, i.e. token > join-BPT > tokenOut
+    // ExitSwap should always be second, i.e. token > BPT > exit > tokenOut
     let pathSwapType = PathSwapTypes.TokenSwap;
     if (poolPairDataFirst.pairType === PairTypes.TokenToBpt)
         pathSwapType = PathSwapTypes.JoinSwap;
-    else if (poolPairDataFirst.pairType === PairTypes.BptToToken)
+    else if (poolPairDataSecond.pairType === PairTypes.BptToToken)
         pathSwapType = PathSwapTypes.ExitSwap;
 
     // Path id is the concatenation of the ids of poolFirstHop and poolSecondHop
