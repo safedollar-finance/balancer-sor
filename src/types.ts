@@ -49,6 +49,8 @@ export interface Swap {
     maxPrice?: string;
     tokenInDecimals: number;
     tokenOutDecimals: number;
+    pairType: PairTypes;
+    poolAssets: string[];
 }
 
 export interface SubGraphPoolsBase {

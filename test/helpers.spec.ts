@@ -16,7 +16,7 @@ describe(`Tests for Helpers.`, () => {
         const tokenIn = '0x6b175474e89094c44da98b954eedeac495271d0f';
         const tokenOut = '0xba100000625a3754423978a60c9317c58a424e3d';
         const swapType = SwapTypes.SwapExactIn;
-        const isRelayerSwap = true;
+        const isRelayerSwap = false;
 
         const swapsV1Format: any = testSwaps.directhops;
 
@@ -38,7 +38,7 @@ describe(`Tests for Helpers.`, () => {
         );
 
         expect(expectedTokenAddresses).to.deep.eq(swapInfo.tokenAddresses);
-        assert.isTrue(swapInfo.isRelayerSwap);
+        assert.isFalse(swapInfo.isRelayerSwap);
         assert.equal(swapInfo.swaps.length, 2);
         assert.equal('1000000000000000000', swapInfo.swapAmount.toString());
         assert.equal('2000000000000000000', swapInfo.returnAmount.toString());

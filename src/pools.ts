@@ -279,6 +279,8 @@ function createDirectPath(
         tokenOut: tokenOut,
         tokenInDecimals: 18, // TO DO - Add decimals here
         tokenOutDecimals: 18,
+        pairType: PairTypes.TokenToToken,
+        poolAssets: pool.tokensList,
     };
 
     const poolPairData = pool.parsePoolPairData(tokenIn, tokenOut);
@@ -302,12 +304,17 @@ function createMultihopPath(
     hopToken: string,
     tokenOut: string
 ): NewPath {
+    const poolPairDataFirst = firstPool.parsePoolPairData(tokenIn, hopToken);
+    const poolPairDataSecond = secondPool.parsePoolPairData(hopToken, tokenOut);
+
     const swap1: Swap = {
         pool: firstPool.id,
         tokenIn: tokenIn,
         tokenOut: hopToken,
         tokenInDecimals: 18, // Placeholder for actual decimals TO DO
         tokenOutDecimals: 18,
+        pairType: poolPairDataFirst.pairType,
+        poolAssets: firstPool.tokensList,
     };
 
     const swap2: Swap = {
@@ -316,10 +323,9 @@ function createMultihopPath(
         tokenOut: tokenOut,
         tokenInDecimals: 18, // Placeholder for actual decimals TO DO
         tokenOutDecimals: 18,
+        pairType: poolPairDataSecond.pairType,
+        poolAssets: secondPool.tokensList,
     };
-
-    const poolPairDataFirst = firstPool.parsePoolPairData(tokenIn, hopToken);
-    const poolPairDataSecond = secondPool.parsePoolPairData(hopToken, tokenOut);
 
     // JoinSwap should always be first, i.e. token > join-BPT > tokenOut
     // ExitSwap should always be second, i.e. token > BPT > exit > tokenOut

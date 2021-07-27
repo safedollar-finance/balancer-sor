@@ -2,27 +2,20 @@ require('dotenv').config();
 import { ALLOW_ADD_REMOVE } from '../src/config';
 import { expect } from 'chai';
 import { JsonRpcProvider } from '@ethersproject/providers';
-import { SOR } from '../src';
-import { getBestPathIds, calculatePathLimits } from '../src/sorClass';
 import {
+    SOR,
     SubGraphPoolsBase,
     SwapInfo,
     SwapTypes,
-    PoolTypes,
     PairTypes,
-    PoolDictionary,
     NewPath,
-    PoolBase,
     PathSwapTypes,
-} from '../src/types';
-import { bnum, scale } from '../src/bmath';
+    bnum,
+} from '../src';
+import { getBestPathIds, calculatePathLimits } from '../src/sorClass';
 import { BigNumber } from '../src/utils/bignumber';
-import {
-    StablePool,
-    StablePoolPairData,
-} from '../src/pools/stablePool/stablePool';
+import { StablePool } from '../src/pools/stablePool/stablePool';
 import { WeightedPool } from '../src/pools/weightedPool/weightedPool';
-import { BPTForTokensZeroPriceImpact } from '../src/frontendHelpers/stableHelpers';
 
 const gasPrice = bnum('30000000000');
 const maxPools = 4;
@@ -31,11 +24,8 @@ const provider = new JsonRpcProvider(
     `https://mainnet.infura.io/v3/${process.env.INFURA}`
 );
 
-const BAL = '0xba100000625a3754423978a60c9317c58a424e3d';
 const USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const DAI = '0x6b175474e89094c44da98b954eedeac495271d0f';
-const USDT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
-const BPT = '0xebfed10e11dc08fcda1af1fda146945e8710f22e';
 const RANDOM = '0x1456688345527be1f37e9e627da0837d6f08c925';
 
 function newStablePool(pool: any) {
@@ -113,6 +103,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[0].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolDirect.tokensList,
                     };
 
                     const pathDirect: NewPath = {
@@ -131,6 +123,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[0].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToBpt,
+                        poolAssets: poolToJoin.tokensList,
                     };
 
                     const swapBpt = {
@@ -140,6 +134,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: '0',
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolBptSwap.tokensList,
                     };
 
                     const pathJoinSwap: NewPath = {
@@ -216,6 +212,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[0].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolDirect,
                     };
 
                     const pathDirect: NewPath = {
@@ -234,6 +232,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[0].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToBpt,
+                        poolAssets: poolToJoin.tokensList,
                     };
 
                     const swapBpt = {
@@ -243,6 +243,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: '0',
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolBptSwap.tokensList,
                     };
 
                     const pathJoinSwap: NewPath = {
@@ -321,6 +323,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[0].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolDirect,
                     };
 
                     const pathDirect: NewPath = {
@@ -339,6 +343,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[1].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToBpt,
+                        poolAssets: poolToJoin.tokensList,
                     };
 
                     const swapBpt = {
@@ -348,6 +354,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: '0',
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolBptSwap.tokensList,
                     };
 
                     const pathJoinSwap: NewPath = {
@@ -435,6 +443,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: '0',
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToBpt,
+                        poolAssets: poolToJoin.tokensList,
                     };
 
                     const swapBpt = {
@@ -444,6 +454,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[1].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolBptSwap.tokensList,
                     };
 
                     const pathJoinSwap: NewPath = {
@@ -462,6 +474,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: '0',
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToBpt,
+                        poolAssets: poolToJoin2.tokensList,
                     };
 
                     const swapBpt2 = {
@@ -471,6 +485,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[1].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolBptSwap2.tokensList,
                     };
 
                     const pathJoinSwap2: NewPath = {
@@ -577,6 +593,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapType,
                         swapAmt
                     );
+
+                    console.log(swapInfo.swaps);
 
                     // TO DO - Need to return in correct format for Relayer
                     // Should return TokenIn > Join > BPT > TokenOut
@@ -785,6 +803,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[0].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 6,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolDirect,
                     };
 
                     const pathDirect: NewPath = {
@@ -803,6 +823,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[0].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolBptSwap.tokensList,
                     };
 
                     const swapExit = {
@@ -812,6 +834,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: '0',
                         tokenInDecimals: 18,
                         tokenOutDecimals: 6,
+                        pairType: PairTypes.BptToToken,
+                        poolAssets: poolToExit.tokensList,
                     };
 
                     const pathExitSwap: NewPath = {
@@ -978,6 +1002,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[0].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 6,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolDirect,
                     };
 
                     const pathDirect: NewPath = {
@@ -996,6 +1022,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[1].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolBptSwap.tokensList,
                     };
 
                     const swapExit = {
@@ -1005,6 +1033,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: '0',
                         tokenInDecimals: 18,
                         tokenOutDecimals: 6,
+                        pairType: PairTypes.BptToToken,
+                        poolAssets: poolToExit.tokensList,
                     };
 
                     const pathExitSwap: NewPath = {
@@ -1095,6 +1125,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[1].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolBptSwap.tokensList,
                     };
 
                     const swapExit = {
@@ -1104,6 +1136,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: '0',
                         tokenInDecimals: 18,
                         tokenOutDecimals: 6,
+                        pairType: PairTypes.BptToToken,
+                        poolAssets: poolToExit.tokensList,
                     };
 
                     const pathExitSwap: NewPath = {
@@ -1122,6 +1156,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: swapAmounts[1].toString(),
                         tokenInDecimals: 18,
                         tokenOutDecimals: 18,
+                        pairType: PairTypes.TokenToToken,
+                        poolAssets: poolBptSwap2.tokensList,
                     };
 
                     const swapExit2 = {
@@ -1131,6 +1167,8 @@ describe(`Tests for Simplified MetaPool.`, () => {
                         swapAmount: '0',
                         tokenInDecimals: 18,
                         tokenOutDecimals: 6,
+                        pairType: PairTypes.BptToToken,
+                        poolAssets: poolToExit2.tokensList,
                     };
 
                     const pathExitSwap2: NewPath = {
