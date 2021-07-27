@@ -208,4 +208,6 @@ describe(`Tests for BatchRelayer support.`, () => {
             expect(userDataCheck).eq(swapInfo.joinRequest.userData);
         });
     });
+
+    context('format swaps for relayer - exitSwap', () => {});
 });

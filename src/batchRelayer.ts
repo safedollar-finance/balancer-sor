@@ -66,18 +66,18 @@ export function formatBatchRelayerJoinSwaps(
         wrapOptions.isEthSwap ||
         swapsOriginal.length !== 1 ||
         swapsOriginal[0].length !== 2 ||
-        swapsOriginal[0][0].pairType !== PairTypes.TokenToBpt
+        swapsOriginal[0][0].pairType !== PairTypes.TokenToBpt ||
+        swapsOriginal[0][1].pairType !== PairTypes.TokenToToken
     )
         return swapInfo;
 
     // TO DO - Handle SWAPEXACTOUT properly
     if (swapType === SwapTypes.SwapExactOut) return swapInfo;
 
-    const swaps: Swap[][] = JSON.parse(JSON.stringify(swapsOriginal));
     let tokenInDecimals: number;
     let tokenOutDecimals: number;
     // Find token decimals for scaling
-    swaps.forEach(sequence => {
+    swapsOriginal.forEach(sequence => {
         sequence.forEach(swap => {
             if (swap.tokenIn === tokenIn)
                 tokenInDecimals = swap.tokenInDecimals;
@@ -91,7 +91,10 @@ export function formatBatchRelayerJoinSwaps(
     swapInfo.poolId = swapsOriginal[0][0].pool;
 
     // The swap will be the BPT > Token section which is second sequence
-    swapInfo.swapAssets = [swaps[0][1].tokenIn, swaps[0][1].tokenOut];
+    swapInfo.swapAssets = [
+        swapsOriginal[0][1].tokenIn,
+        swapsOriginal[0][1].tokenOut,
+    ];
 
     // TO DO - Handle SwapExactOut
     if (swapType === SwapTypes.SwapExactIn) {
@@ -112,10 +115,10 @@ export function formatBatchRelayerJoinSwaps(
 
         // This is the swap of BPT > Token after join
         const swapV2: SwapV2 = {
-            poolId: swaps[0][1].pool,
+            poolId: swapsOriginal[0][1].pool,
             assetInIndex: 0,
             assetOutIndex: 1,
-            amount: scale(bnum(swaps[0][1].swapAmount), 18).toString(), // Will always be 18 as BPT > tokenOut. This will be overwritten in relayer to match BPT amt from join
+            amount: scale(bnum(swapsOriginal[0][1].swapAmount), 18).toString(), // Will always be 18 as BPT > tokenOut. This will be overwritten in relayer to match BPT amt from join
             userData: '0x',
         };
 
