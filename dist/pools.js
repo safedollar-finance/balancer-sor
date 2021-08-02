@@ -85,8 +85,12 @@ function filterPoolsOfInterest(
                 pool.baseToken
             );
             newPool.setCurrentBlockTimestamp(currentBlockTimestamp);
-        } else
-            throw `Unknown pool type or type field missing: ${pool.poolType}`;
+        } else {
+            console.error(
+                `Unknown pool type or type field missing: ${pool.poolType} ${pool.id}`
+            );
+            return;
+        }
         let tokenListSet = new Set(pool.tokensList);
         // Depending on env file, we add the BPT as well as
         // we can join/exit as part of the multihop

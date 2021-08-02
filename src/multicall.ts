@@ -72,26 +72,36 @@ export async function getOnChainBalances(
 
     subgraphPools.pools.forEach(subgraphPool => {
         const onChainResult = pools[subgraphPool.id];
-        subgraphPool.swapFee = scale(
-            bnum(onChainResult.swapFee),
-            -18
-        ).toString();
-        onChainResult.poolTokens.tokens.forEach((token, i) => {
-            const tokenAddress = onChainResult.poolTokens.tokens[i]
-                .toString()
-                .toLowerCase();
-            const T = subgraphPool.tokens.find(t => t.address === tokenAddress);
-            const balance = scale(
-                bnum(onChainResult.poolTokens.balances[i]),
-                -Number(T.decimals)
+
+        try {
+            subgraphPool.swapFee = scale(
+                bnum(onChainResult.swapFee),
+                -18
             ).toString();
-            T.balance = balance;
-            if (subgraphPool.poolType === 'Weighted')
-                T.weight = scale(
-                    bnum(onChainResult.weights[i]),
-                    -18
+            onChainResult.poolTokens.tokens.forEach((token, i) => {
+                const tokenAddress = onChainResult.poolTokens.tokens[i]
+                    .toString()
+                    .toLowerCase();
+                const T = subgraphPool.tokens.find(
+                    t => t.address === tokenAddress
+                );
+                const balance = scale(
+                    bnum(onChainResult.poolTokens.balances[i]),
+                    -Number(T.decimals)
                 ).toString();
-        });
+                T.balance = balance;
+                if (subgraphPool.poolType === 'Weighted')
+                    T.weight = scale(
+                        bnum(onChainResult.weights[i]),
+                        -18
+                    ).toString();
+            });
+        } catch (err) {
+            // Likely an unsupported pool type
+            // console.log(`Issue with pool onchain call`)
+            // console.log(subgraphPool.id);
+            // console.log(onChainResult);
+        }
     });
     return subgraphPools;
 }
