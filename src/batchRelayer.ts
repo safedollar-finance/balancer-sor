@@ -2,6 +2,7 @@ import { BigNumber } from './utils/bignumber';
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { SwapTypes, PairTypes, SwapV2, Swap } from './types';
 import { bnum, scale, ZERO } from './bmath';
+import { formatSwaps } from './helpersClass';
 
 export interface BatchRelayerJoinSwap {
     poolId: string;
@@ -18,10 +19,10 @@ export interface BatchRelayerJoinSwap {
 }
 
 export interface JoinRequest {
-    poolAssets: string[];
+    assets: string[];
     maxAmountsIn: string[];
     userData: string;
-    internalBalance: boolean;
+    fromInternalBalance: boolean;
 }
 
 export interface BatchRelayerExitSwap {
@@ -39,10 +40,10 @@ export interface BatchRelayerExitSwap {
 }
 
 export interface ExitRequest {
-    poolAssets: string[];
+    assets: string[];
     minAmountsOut: string[];
     userData: string;
-    internalBalance: boolean;
+    toInternalBalance: boolean;
 }
 
 export function formatBatchRelayerJoinSwaps(
@@ -61,10 +62,10 @@ export function formatBatchRelayerJoinSwaps(
     }
 ): BatchRelayerJoinSwap {
     let joinRequest: JoinRequest = {
-        poolAssets: [],
+        assets: [],
         maxAmountsIn: [],
         userData: '',
-        internalBalance: false,
+        fromInternalBalance: false,
     };
 
     let swapInfo: BatchRelayerJoinSwap = {
@@ -85,88 +86,81 @@ export function formatBatchRelayerJoinSwaps(
     if (
         !isRelayerSwap ||
         wrapOptions.isEthSwap ||
-        swapsOriginal.length !== 1 ||
-        swapsOriginal[0].length !== 2 ||
-        swapsOriginal[0][0].pairType !== PairTypes.TokenToBpt ||
-        swapsOriginal[0][1].pairType !== PairTypes.TokenToToken
-    )
+        swapsOriginal.length !== 1 || // Can only support one path - join then swaps
+        swapsOriginal[0].length < 2 || // Has to at least be one swap after join
+        swapsOriginal[0][0].pairType !== PairTypes.TokenToBpt // First must be join
+    ) {
         return swapInfo;
+    }
+
+    // All following join must be swaps
+    for (let i = 1; i < swapsOriginal[0].length; i++) {
+        if (swapsOriginal[0][i].pairType !== PairTypes.TokenToToken) {
+            return swapInfo;
+        }
+    }
 
     // TO DO - Handle SWAPEXACTOUT properly
     if (swapType === SwapTypes.SwapExactOut) return swapInfo;
 
-    let tokenInDecimals: number;
-    let tokenOutDecimals: number;
-    // Find token decimals for scaling
-    swapsOriginal.forEach(sequence => {
-        sequence.forEach(swap => {
-            if (swap.tokenIn === tokenIn)
-                tokenInDecimals = swap.tokenInDecimals;
+    // Split join from other swaps
+    const joinSwapOriginal = swapsOriginal[0][0];
+    const batchSwapsOriginal = swapsOriginal[0].slice(1);
 
-            if (swap.tokenOut === tokenOut)
-                tokenOutDecimals = swap.tokenOutDecimals;
-        });
-    });
+    // TO DO - SwapExactOut case will be opposite
+    const swapAmountScaled = scale(
+        swapAmount,
+        joinSwapOriginal.tokenInDecimals
+    );
+    const returnAmountScaled = scale(
+        returnAmount,
+        batchSwapsOriginal[batchSwapsOriginal.length - 1].tokenOutDecimals
+    );
+    const returnAmountConsideringFeesScaled = scale(
+        returnAmountConsideringFees,
+        batchSwapsOriginal[batchSwapsOriginal.length - 1].tokenOutDecimals
+    );
+
+    const formattedSwaps = formatSwaps(
+        [batchSwapsOriginal],
+        swapType,
+        bnum(batchSwapsOriginal[0].swapAmount), // Not important
+        batchSwapsOriginal[0].tokenIn, // Not important
+        tokenOut, // Not important
+        returnAmount, // Not important
+        returnAmountConsideringFees, // Not important
+        marketSp,
+        false
+    );
+
+    swapInfo.swapAssets = formattedSwaps.tokenAddresses;
+    swapInfo.swaps = formattedSwaps.swaps;
+    swapInfo.swapAmount = swapAmountScaled;
+    swapInfo.returnAmount = returnAmountScaled;
+    swapInfo.returnAmountConsideringFees = returnAmountConsideringFeesScaled;
+    swapInfo.tokenIn = tokenIn;
+    swapInfo.tokenOut = tokenOut;
+    swapInfo.marketSp = formattedSwaps.marketSp;
 
     // Id of pool to join, first pool in sequence
-    swapInfo.poolId = swapsOriginal[0][0].pool;
-
-    // The swap will be the BPT > Token section which is second sequence
-    swapInfo.swapAssets = [
-        swapsOriginal[0][1].tokenIn,
-        swapsOriginal[0][1].tokenOut,
-    ];
-
-    // TO DO - Handle SwapExactOut
-    if (swapType === SwapTypes.SwapExactIn) {
-        let swapAmountScaled = scale(swapAmount, tokenInDecimals);
-        swapInfo.swapAmount = swapAmountScaled;
-
-        // Using this split to remove any decimals
-        swapInfo.returnAmount = bnum(
-            scale(returnAmount, tokenOutDecimals)
-                .toString()
-                .split('.')[0]
-        );
-        swapInfo.returnAmountConsideringFees = bnum(
-            scale(returnAmountConsideringFees, tokenOutDecimals)
-                .toString()
-                .split('.')[0]
-        );
-
-        // This is the swap of BPT > Token after join
-        const swapV2: SwapV2 = {
-            poolId: swapsOriginal[0][1].pool,
-            assetInIndex: 0,
-            assetOutIndex: 1,
-            amount: scale(bnum(swapsOriginal[0][1].swapAmount), 18).toString(), // Will always be 18 as BPT > tokenOut. This will be overwritten in relayer to match BPT amt from join
-            userData: '0x',
-        };
-
-        swapInfo.swaps = [swapV2];
-    }
-
+    swapInfo.poolId = joinSwapOriginal.pool;
     // Create request data
     // Max amount of tokens for joinPool. Should be swapAmount of tokenIn
     const poolMaxAmtsIn: string[] = [];
-    swapsOriginal[0][0].poolAssets.forEach((asset, i) => {
+    joinSwapOriginal.poolAssets.forEach((asset, i) => {
         if (asset === tokenIn)
             poolMaxAmtsIn[i] = swapInfo.swapAmount.toString();
         else poolMaxAmtsIn[i] = '0';
     });
-
     swapInfo.joinRequest.maxAmountsIn = poolMaxAmtsIn;
     // Assets of pool to join
-    swapInfo.joinRequest.poolAssets = swapsOriginal[0][0].poolAssets;
+    swapInfo.joinRequest.assets = joinSwapOriginal.poolAssets;
     // Encodes for ExactTokensInForBPTOut join which is only one supported
     const JOIN_EXACT_TOKENS_IN_FOR_BPT_OUT_TAG = 1;
     swapInfo.joinRequest.userData = defaultAbiCoder.encode(
         ['uint256', 'uint256[]', 'uint256'],
         [JOIN_EXACT_TOKENS_IN_FOR_BPT_OUT_TAG, poolMaxAmtsIn, 0]
     );
-
-    swapInfo.tokenIn = tokenIn;
-    swapInfo.tokenOut = tokenOut;
 
     return swapInfo;
 }
@@ -187,10 +181,10 @@ export function formatBatchRelayerExitSwaps(
     }
 ): BatchRelayerExitSwap {
     let exitRequest: ExitRequest = {
-        poolAssets: [],
+        assets: [],
         minAmountsOut: [],
         userData: '',
-        internalBalance: false,
+        toInternalBalance: false,
     };
 
     let swapInfo: BatchRelayerExitSwap = {
@@ -341,8 +335,7 @@ export function formatBatchRelayerExitSwaps(
 
     swapInfo.exitRequest.minAmountsOut = poolMinAmtsOut;
     // Assets of pool to exit
-    swapInfo.exitRequest.poolAssets =
-        swapsOriginal[exitSwapIndex][1].poolAssets;
+    swapInfo.exitRequest.assets = swapsOriginal[exitSwapIndex][1].poolAssets;
     // Encodes for ExactBPTInForOneTokenOut exit which is only one supported
     const EXIT_POOL_EXACT_BPT_IN_FOR_ONE_TOKEN_OUT_TAG = 0;
     // bptAmountIn is overwritten by the relayer

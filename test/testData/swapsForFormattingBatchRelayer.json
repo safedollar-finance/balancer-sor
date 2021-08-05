@@ -184,5 +184,55 @@
                 ]
             }
         ]
+    ],
+    "joinSwapWithMulti": [
+        [
+            {
+                "pool": "0xebfed10e11dc08fcda1af1fda146945e8710f22e00000000000000000000007f",
+                "tokenIn": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                "tokenOut": "0xebfed10e11dc08fcda1af1fda146945e8710f22e",
+                "swapAmount": "0.01",
+                "limitReturnAmount": "0",
+                "maxPrice": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+                "tokenInDecimals": 18,
+                "tokenOutDecimals": 18,
+                "pairType": 1,
+                "poolAssets": [
+                    "0x6b175474e89094c44da98b954eedeac495271d0f",
+                    "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                ]
+            },
+            {
+                "pool": "0x119a129203a3882b85ca77c954af86ebfae16bdd0000000000000000000000a0",
+                "tokenIn": "0xebfed10e11dc08fcda1af1fda146945e8710f22e",
+                "tokenOut": "0x04df6e4121c27713ed22341e7c7df330f56f289b",
+                "swapAmount": "0.00499888646581743",
+                "limitReturnAmount": "0",
+                "maxPrice": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+                "tokenInDecimals": 18,
+                "tokenOutDecimals": 18,
+                "pairType": 2,
+                "poolAssets": [
+                    "0xebfed10e11dc08fcda1af1fda146945e8710f22e",
+                    "0x04df6e4121c27713ed22341e7c7df330f56f289b"
+                ]
+            },
+            {
+                "pool": "0xb8ece82fcfb948b1af937e2819eb2d72bb3d98d20002000000000000000000fc",
+                "tokenIn": "0x04df6e4121c27713ed22341e7c7df330f56f289b",
+                "tokenOut": "0x1456688345527be1f37e9e627da0837d6f08c925",
+                "swapAmount": "0.005",
+                "limitReturnAmount": "0",
+                "maxPrice": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+                "tokenInDecimals": 18,
+                "tokenOutDecimals": 18,
+                "pairType": 2,
+                "poolAssets": [
+                    "0x04df6e4121c27713ed22341e7c7df330f56f289b",
+                    "0x1456688345527be1f37e9e627da0837d6f08c925"
+                ]
+            }
+        ]
     ]
 }

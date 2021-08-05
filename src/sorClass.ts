@@ -506,7 +506,7 @@ export function getBestPathIds(
         let bestPathIndex = -1;
         let bestEffectivePrice = INFINITY; // Start with worst price possible
         paths.forEach((path, j) => {
-            // With the BatchRelayer simplifications we can only use a joinSwap for a single path
+            // With the BatchRelayer simplifications we can only use a joinSwap for a single path - NOTE single path can have more than one swap
             // So in simplified terms if there is more than one swap amount being considered we don’t use a joinSwap.
             // Can only ExitSwap a single pool but can combine with other batchSwap paths.
             if (

@@ -106,7 +106,7 @@ describe(`Tests for BatchRelayer support.`, () => {
             expect(swapInfo.returnAmount.toString()).eq('0');
         });
 
-        it('formats a valid joinSwap', async () => {
+        it('formats a valid joinSwap with single swap - TokenIn>BPT>TokenOut', async () => {
             /*
             Swap will look like:
             TokenIn > BPT Token - This should be the join
@@ -121,6 +121,7 @@ describe(`Tests for BatchRelayer support.`, () => {
             const swapType = SwapTypes.SwapExactIn;
             const isRelayerSwap = true;
 
+            // This should be BPT and TokenOut
             const expectedSwapAssets: string[] = [
                 swapsV1Format[0][1].tokenIn,
                 swapsV1Format[0][1].tokenOut,
@@ -165,26 +166,155 @@ describe(`Tests for BatchRelayer support.`, () => {
             expect(tokenIn).eq(swapInfo.tokenIn);
             expect(tokenOut).eq(swapInfo.tokenOut);
             expect(expectedSwapAssets).to.deep.eq(swapInfo.swapAssets);
-            // Should always only have one swap - BPT > TokenOut
+            // Should only have one swap - BPT > TokenOut
             expect(swapInfo.swaps.length).eq(1);
             expect(swapInfo.swaps[0].assetInIndex).eq(0);
             expect(swapInfo.swaps[0].assetOutIndex).eq(1);
+            expect(swapInfo.swapAssets[swapInfo.swaps[0].assetInIndex]).eq(
+                swapsV1Format[0][1].tokenIn
+            );
+            expect(swapInfo.swapAssets[swapInfo.swaps[0].assetOutIndex]).eq(
+                tokenOut
+            );
             // Amt will actually be overwritten in Relayer but check here anyway
             expect(swapInfo.swaps[0].amount.toString()).eq(
                 scale(bnum(swapsV1Format[0][1].swapAmount), 18).toString()
             );
 
-            //     joinRequest,
-            expect(swapInfo.joinRequest.internalBalance).to.be.false;
-            expect(swapInfo.joinRequest.poolAssets).to.deep.eq(
+            //     joinRequest - the join info is related to the joinSwap
+            expect(swapInfo.joinRequest.fromInternalBalance).to.be.false;
+            // Assets of join pool only.
+            expect(swapInfo.joinRequest.assets).to.deep.eq(
                 swapsV1Format[0][0].poolAssets
             );
             expect(swapInfo.joinRequest.maxAmountsIn.length).eq(
                 swapsV1Format[0][0].poolAssets.length
             );
-            const tokenInIndex = swapInfo.joinRequest.poolAssets.indexOf(
-                tokenIn
+            const tokenInIndex = swapInfo.joinRequest.assets.indexOf(tokenIn);
+            const maxAmtsCheck: string[] = [];
+            swapInfo.joinRequest.maxAmountsIn.forEach((amt, i) => {
+                if (i === tokenInIndex) {
+                    expect(amt.toString()).eq(swapAmountScaled.toString());
+                    maxAmtsCheck[i] = swapAmountScaled.toString();
+                } else {
+                    expect(amt.toString()).eq('0');
+                    maxAmtsCheck[i] = '0';
+                }
+            });
+            expect(maxAmtsCheck).to.deep.eq(swapInfo.joinRequest.maxAmountsIn);
+            // const userDataCheck = encodeJoinStablePool({ kind: 'ExactTokensInForBPTOut', amountsIn: maxAmtsCheck, minimumBPT: 0 });
+            const JOIN_STABLE_POOL_EXACT_TOKENS_IN_FOR_BPT_OUT_TAG = 1;
+            const userDataCheck = defaultAbiCoder.encode(
+                ['uint256', 'uint256[]', 'uint256'],
+                [
+                    JOIN_STABLE_POOL_EXACT_TOKENS_IN_FOR_BPT_OUT_TAG,
+                    maxAmtsCheck,
+                    0,
+                ]
             );
+
+            expect(userDataCheck).eq(swapInfo.joinRequest.userData);
+        });
+
+        it('formats a valid joinSwap with multi swap - TokenIn>BPT>HopToken>TokenOut', async () => {
+            /*
+            Swap will look like:
+            TokenIn > BPT Token - This should be the join
+            BPT > HopToken - This will be a swap
+            HopToken > Token Out - This will be a swap
+            */
+            const swapsV1Format: any = _.cloneDeep(testSwaps.joinSwapWithMulti);
+            const swapAmount = new BigNumber(1);
+            const returnAmount = new BigNumber(2);
+            const returnAmountConsideringFees = new BigNumber(1.9);
+            const tokenIn = '0x6b175474e89094c44da98b954eedeac495271d0f';
+            const tokenOut = '0x1456688345527be1f37e9e627da0837d6f08c925';
+            const swapType = SwapTypes.SwapExactIn;
+            const isRelayerSwap = true;
+
+            // BPT, HopToken, TokenOut
+            const expectedSwapAssets: string[] = [
+                swapsV1Format[0][1].tokenIn,
+                swapsV1Format[0][1].tokenOut,
+                tokenOut,
+            ];
+
+            const swapAmountScaled = scale(
+                swapAmount,
+                swapsV1Format[0][0].tokenInDecimals
+            );
+            const returnAmountScaled = scale(
+                returnAmount,
+                swapsV1Format[0][2].tokenOutDecimals
+            );
+            const returnAmountConsideringFeesScaled = scale(
+                returnAmountConsideringFees,
+                swapsV1Format[0][2].tokenOutDecimals
+            );
+
+            const swapInfo: BatchRelayerJoinSwap = formatBatchRelayerJoinSwaps(
+                swapsV1Format,
+                swapType,
+                swapAmount,
+                tokenIn,
+                tokenOut,
+                returnAmount,
+                returnAmountConsideringFees,
+                marketSp,
+                isRelayerSwap
+            );
+
+            expect(swapInfo.isRelayerSwap).eq(true);
+            expect(swapInfo.poolId).eq(swapsV1Format[0][0].pool);
+            expect(swapAmountScaled.toString()).eq(
+                swapInfo.swapAmount.toString()
+            );
+            expect(returnAmountScaled.toString()).eq(
+                swapInfo.returnAmount.toString()
+            );
+            expect(returnAmountConsideringFeesScaled.toString()).eq(
+                swapInfo.returnAmountConsideringFees.toString()
+            );
+            expect(tokenIn).eq(swapInfo.tokenIn);
+            expect(tokenOut).eq(swapInfo.tokenOut);
+            expect(expectedSwapAssets).to.deep.eq(swapInfo.swapAssets);
+            // Should have two swaps - BPT > HopToken > TokenOut
+            expect(swapInfo.swaps.length).eq(2);
+            expect(swapInfo.swaps[0].assetInIndex).eq(0);
+            expect(swapInfo.swaps[0].assetOutIndex).eq(1);
+            expect(swapInfo.swaps[1].assetInIndex).eq(1);
+            expect(swapInfo.swaps[1].assetOutIndex).eq(2);
+            expect(swapInfo.swapAssets[swapInfo.swaps[0].assetInIndex]).eq(
+                swapsV1Format[0][1].tokenIn
+            );
+            expect(swapInfo.swapAssets[swapInfo.swaps[0].assetOutIndex]).eq(
+                swapsV1Format[0][1].tokenOut
+            );
+            expect(swapInfo.swapAssets[swapInfo.swaps[1].assetInIndex]).eq(
+                swapsV1Format[0][2].tokenIn
+            );
+            expect(swapInfo.swapAssets[swapInfo.swaps[1].assetOutIndex]).eq(
+                tokenOut
+            );
+            // Amt will actually be overwritten in Relayer but check here anyway
+            expect(swapInfo.swaps[0].amount.toString()).eq(
+                scale(bnum(swapsV1Format[0][1].swapAmount), 18).toString()
+            );
+            expect(swapInfo.swaps[1].amount.toString()).eq(
+                '0',
+                'Amt should be 0 for multihop'
+            );
+
+            // joinRequest - the join info is related to the joinSwap
+            expect(swapInfo.joinRequest.fromInternalBalance).to.be.false;
+            // Assets of join pool only.
+            expect(swapInfo.joinRequest.assets).to.deep.eq(
+                swapsV1Format[0][0].poolAssets
+            );
+            expect(swapInfo.joinRequest.maxAmountsIn.length).eq(
+                swapsV1Format[0][0].poolAssets.length
+            );
+            const tokenInIndex = swapInfo.joinRequest.assets.indexOf(tokenIn);
             const maxAmtsCheck: string[] = [];
             swapInfo.joinRequest.maxAmountsIn.forEach((amt, i) => {
                 if (i === tokenInIndex) {
@@ -373,16 +503,14 @@ describe(`Tests for BatchRelayer support.`, () => {
             );
 
             //     exitRequest,
-            expect(swapInfo.exitRequest.internalBalance).to.be.false;
-            expect(swapInfo.exitRequest.poolAssets).to.deep.eq(
+            expect(swapInfo.exitRequest.toInternalBalance).to.be.false;
+            expect(swapInfo.exitRequest.assets).to.deep.eq(
                 swapsV1Format[0][1].poolAssets
             );
             expect(swapInfo.exitRequest.minAmountsOut.length).eq(
                 swapsV1Format[0][1].poolAssets.length
             );
-            const tokenOutIndex = swapInfo.exitRequest.poolAssets.indexOf(
-                tokenOut
-            );
+            const tokenOutIndex = swapInfo.exitRequest.assets.indexOf(tokenOut);
             const minAmtsCheck: string[] = [];
             swapInfo.exitRequest.minAmountsOut.forEach((amt, i) => {
                 if (i === tokenOutIndex) {
@@ -498,16 +626,14 @@ describe(`Tests for BatchRelayer support.`, () => {
             );
 
             //     exitRequest,
-            expect(swapInfo.exitRequest.internalBalance).to.be.false;
-            expect(swapInfo.exitRequest.poolAssets).to.deep.eq(
+            expect(swapInfo.exitRequest.toInternalBalance).to.be.false;
+            expect(swapInfo.exitRequest.assets).to.deep.eq(
                 swapsV1Format[1][1].poolAssets
             );
             expect(swapInfo.exitRequest.minAmountsOut.length).eq(
                 swapsV1Format[1][1].poolAssets.length
             );
-            const tokenOutIndex = swapInfo.exitRequest.poolAssets.indexOf(
-                tokenOut
-            );
+            const tokenOutIndex = swapInfo.exitRequest.assets.indexOf(tokenOut);
             const minAmtsCheck: string[] = [];
             swapInfo.exitRequest.minAmountsOut.forEach((amt, i) => {
                 if (i === tokenOutIndex) {
@@ -624,16 +750,14 @@ describe(`Tests for BatchRelayer support.`, () => {
             );
 
             //     exitRequest,
-            expect(swapInfo.exitRequest.internalBalance).to.be.false;
-            expect(swapInfo.exitRequest.poolAssets).to.deep.eq(
+            expect(swapInfo.exitRequest.toInternalBalance).to.be.false;
+            expect(swapInfo.exitRequest.assets).to.deep.eq(
                 swapsV1Format[0][1].poolAssets
             );
             expect(swapInfo.exitRequest.minAmountsOut.length).eq(
                 swapsV1Format[0][1].poolAssets.length
             );
-            const tokenOutIndex = swapInfo.exitRequest.poolAssets.indexOf(
-                tokenOut
-            );
+            const tokenOutIndex = swapInfo.exitRequest.assets.indexOf(tokenOut);
             const minAmtsCheck: string[] = [];
             swapInfo.exitRequest.minAmountsOut.forEach((amt, i) => {
                 if (i === tokenOutIndex) {
@@ -761,16 +885,14 @@ describe(`Tests for BatchRelayer support.`, () => {
             );
 
             //     exitRequest,
-            expect(swapInfo.exitRequest.internalBalance).to.be.false;
-            expect(swapInfo.exitRequest.poolAssets).to.deep.eq(
+            expect(swapInfo.exitRequest.toInternalBalance).to.be.false;
+            expect(swapInfo.exitRequest.assets).to.deep.eq(
                 swapsV1Format[1][1].poolAssets
             );
             expect(swapInfo.exitRequest.minAmountsOut.length).eq(
                 swapsV1Format[1][1].poolAssets.length
             );
-            const tokenOutIndex = swapInfo.exitRequest.poolAssets.indexOf(
-                tokenOut
-            );
+            const tokenOutIndex = swapInfo.exitRequest.assets.indexOf(tokenOut);
             const minAmtsCheck: string[] = [];
             swapInfo.exitRequest.minAmountsOut.forEach((amt, i) => {
                 if (i === tokenOutIndex) {
