@@ -10,6 +10,7 @@ var PoolTypes;
     PoolTypes[(PoolTypes['Weighted'] = 0)] = 'Weighted';
     PoolTypes[(PoolTypes['Stable'] = 1)] = 'Stable';
     PoolTypes[(PoolTypes['Element'] = 2)] = 'Element';
+    PoolTypes[(PoolTypes['MetaStable'] = 3)] = 'MetaStable';
 })((PoolTypes = exports.PoolTypes || (exports.PoolTypes = {})));
 var SwapPairType;
 (function(SwapPairType) {
@@ -28,4 +29,6 @@ var PoolFilter;
     PoolFilter['All'] = 'All';
     PoolFilter['Weighted'] = 'Weighted';
     PoolFilter['Stable'] = 'Stable';
+    PoolFilter['MetaStable'] = 'MetaStable';
+    PoolFilter['LBP'] = 'LiquidityBootstrapping';
 })((PoolFilter = exports.PoolFilter || (exports.PoolFilter = {})));

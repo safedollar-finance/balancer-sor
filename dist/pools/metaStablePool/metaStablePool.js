@@ -15,10 +15,10 @@ const types_1 = require('../../types');
 const address_1 = require('@ethersproject/address');
 const bmath_1 = require('../../bmath');
 const SDK = __importStar(require('@georgeroman/balancer-v2-pools'));
-const stableMath_1 = require('./stableMath');
-class StablePool {
+const metaStableMath_1 = require('./metaStableMath');
+class MetaStablePool {
     constructor(id, address, amp, swapFee, totalShares, tokens, tokensList) {
-        this.poolType = types_1.PoolTypes.Stable;
+        this.poolType = types_1.PoolTypes.MetaStable;
         this.AMP_PRECISION = bmath_1.bnum(1000);
         this.MAX_IN_RATIO = bmath_1.bnum(0.3);
         this.MAX_OUT_RATIO = bmath_1.bnum(0.3);
@@ -45,14 +45,16 @@ class StablePool {
         let decimalsIn;
         let tokenIndexIn;
         let tokenIndexOut;
+        let tokenInPriceRate = bmath_1.bnum(1);
+        let tokenOutPriceRate = bmath_1.bnum(1);
         // Check if tokenIn is the pool token itself (BPT)
         if (tokenIn === this.address) {
             pairType = types_1.PairTypes.BptToToken;
-            balanceIn = this.totalShares;
+            balanceIn = bmath_1.bnum(this.totalShares);
             decimalsIn = '18'; // Not used but has to be defined
         } else if (tokenOut === this.address) {
             pairType = types_1.PairTypes.TokenToBpt;
-            balanceOut = this.totalShares;
+            balanceOut = bmath_1.bnum(this.totalShares);
             decimalsOut = '18'; // Not used but has to be defined
         } else {
             pairType = types_1.PairTypes.TokenToToken;
@@ -65,8 +67,12 @@ class StablePool {
             );
             if (tokenIndexIn < 0) throw 'Pool does not contain tokenIn';
             tI = this.tokens[tokenIndexIn];
-            balanceIn = tI.balance;
+            // balanceIn = tI.balance;
+            balanceIn = bmath_1
+                .bnum(tI.balance)
+                .times(bmath_1.bnum(tI.priceRate));
             decimalsIn = tI.decimals;
+            tokenInPriceRate = bmath_1.bnum(tI.priceRate);
         }
         if (pairType !== types_1.PairTypes.TokenToBpt) {
             tokenIndexOut = this.tokens.findIndex(
@@ -76,18 +82,26 @@ class StablePool {
             );
             if (tokenIndexOut < 0) throw 'Pool does not contain tokenOut';
             tO = this.tokens[tokenIndexOut];
-            balanceOut = tO.balance;
+            // balanceOut = tO.balance;
+            balanceOut = bmath_1
+                .bnum(tO.balance)
+                .times(bmath_1.bnum(tO.priceRate));
             decimalsOut = tO.decimals;
+            tokenOutPriceRate = bmath_1.bnum(tO.priceRate);
         }
         // Get all token balances
         let allBalances = [];
         let allBalancesScaled = [];
         for (let i = 0; i < this.tokens.length; i++) {
-            const balanceBn = bmath_1.bnum(this.tokens[i].balance);
+            // const balanceBn = bnum(this.tokens[i].balance);
+            const balanceBn = bmath_1
+                .bnum(this.tokens[i].balance)
+                .times(bmath_1.bnum(this.tokens[i].priceRate))
+                .dp(Number(this.tokens[i].decimals), 1);
             allBalances.push(balanceBn);
             allBalancesScaled.push(bmath_1.scale(balanceBn, 18));
         }
-        let inv = stableMath_1._invariant(this.amp, allBalances);
+        let inv = metaStableMath_1._invariant(this.amp, allBalances);
         const poolPairData = {
             id: this.id,
             address: this.address,
@@ -95,8 +109,8 @@ class StablePool {
             pairType: pairType,
             tokenIn: tokenIn,
             tokenOut: tokenOut,
-            balanceIn: bmath_1.bnum(balanceIn),
-            balanceOut: bmath_1.bnum(balanceOut),
+            balanceIn: balanceIn,
+            balanceOut: balanceOut,
             invariant: inv,
             swapFee: this.swapFee,
             swapFeeScaled: this.swapFeeScaled,
@@ -107,6 +121,8 @@ class StablePool {
             tokenIndexOut: tokenIndexOut,
             decimalsIn: Number(decimalsIn),
             decimalsOut: Number(decimalsOut),
+            tokenInPriceRate,
+            tokenOutPriceRate,
         };
         return poolPairData;
     }
@@ -118,10 +134,15 @@ class StablePool {
         // We multiply ratios by 10**-18 because we are in normalized space
         // so 0.5 should be 0.5 and not 500000000000000000
         // TODO: update bmath to use everything normalized
+        // PoolPairData is using balances that have already been exchanged so need to convert back
         if (swapType === types_1.SwapTypes.SwapExactIn) {
-            return poolPairData.balanceIn.times(this.MAX_IN_RATIO);
+            return poolPairData.balanceIn
+                .div(poolPairData.tokenInPriceRate)
+                .times(this.MAX_IN_RATIO);
         } else {
-            return poolPairData.balanceOut.times(this.MAX_OUT_RATIO);
+            return poolPairData.balanceOut
+                .div(poolPairData.tokenOutPriceRate)
+                .times(this.MAX_OUT_RATIO);
         }
     }
     // Updates the balance of a given token for the pool
@@ -139,98 +160,110 @@ class StablePool {
         // Using BigNumber.js decimalPlaces (dp), allows us to consider token decimal accuracy correctly,
         // i.e. when using token with 2decimals 0.002 should be returned as 0
         // Uses ROUND_DOWN mode (1)
-        return stableMath_1
-            ._exactTokenInForTokenOut(amount, poolPairData)
+        let amt = metaStableMath_1
+            ._exactTokenInForTokenOut(
+                amount.times(poolPairData.tokenInPriceRate),
+                poolPairData
+            )
             .dp(poolPairData.decimalsOut, 1);
+        return amt.div(poolPairData.tokenOutPriceRate);
     }
     _exactTokenInForBPTOut(poolPairData, amount) {
-        return stableMath_1._exactTokenInForBPTOut(amount, poolPairData);
+        return metaStableMath_1._exactTokenInForBPTOut(amount, poolPairData);
     }
     _exactBPTInForTokenOut(poolPairData, amount) {
-        return stableMath_1._exactBPTInForTokenOut(amount, poolPairData);
+        return metaStableMath_1._exactBPTInForTokenOut(amount, poolPairData);
     }
     _tokenInForExactTokenOut(poolPairData, amount) {
         // Using BigNumber.js decimalPlaces (dp), allows us to consider token decimal accuracy correctly,
         // i.e. when using token with 2decimals 0.002 should be returned as 0
         // Uses ROUND_UP mode (0)
-        return stableMath_1
-            ._tokenInForExactTokenOut(amount, poolPairData)
+        let amt = metaStableMath_1
+            ._tokenInForExactTokenOut(
+                amount.times(poolPairData.tokenOutPriceRate),
+                poolPairData
+            )
             .dp(poolPairData.decimalsIn, 0);
+        return amt.div(poolPairData.tokenInPriceRate);
     }
     _tokenInForExactBPTOut(poolPairData, amount) {
-        return stableMath_1._tokenInForExactBPTOut(amount, poolPairData);
+        return metaStableMath_1._tokenInForExactBPTOut(amount, poolPairData);
     }
     _BPTInForExactTokenOut(poolPairData, amount) {
-        return stableMath_1._BPTInForExactTokenOut(amount, poolPairData);
+        return metaStableMath_1._BPTInForExactTokenOut(amount, poolPairData);
     }
     _spotPriceAfterSwapExactTokenInForTokenOut(poolPairData, amount) {
-        return stableMath_1._spotPriceAfterSwapExactTokenInForTokenOut(
-            amount,
+        let amountConverted = amount.times(poolPairData.tokenInPriceRate);
+        let result = metaStableMath_1._spotPriceAfterSwapExactTokenInForTokenOut(
+            amountConverted,
             poolPairData
         );
+        return result;
     }
     _spotPriceAfterSwapExactTokenInForBPTOut(poolPairData, amount) {
-        return stableMath_1._spotPriceAfterSwapExactTokenInForBPTOut(
+        return metaStableMath_1._spotPriceAfterSwapExactTokenInForBPTOut(
             amount,
             poolPairData
         );
     }
     _spotPriceAfterSwapExactBPTInForTokenOut(poolPairData, amount) {
-        return stableMath_1._spotPriceAfterSwapExactBPTInForTokenOut(
+        return metaStableMath_1._spotPriceAfterSwapExactBPTInForTokenOut(
             amount,
             poolPairData
         );
     }
     _spotPriceAfterSwapTokenInForExactTokenOut(poolPairData, amount) {
-        return stableMath_1._spotPriceAfterSwapTokenInForExactTokenOut(
-            amount,
+        let amountConverted = amount.times(poolPairData.tokenOutPriceRate);
+        let result = metaStableMath_1._spotPriceAfterSwapTokenInForExactTokenOut(
+            amountConverted,
             poolPairData
         );
+        return result;
     }
     _spotPriceAfterSwapTokenInForExactBPTOut(poolPairData, amount) {
-        return stableMath_1._spotPriceAfterSwapTokenInForExactBPTOut(
+        return metaStableMath_1._spotPriceAfterSwapTokenInForExactBPTOut(
             amount,
             poolPairData
         );
     }
     _spotPriceAfterSwapBPTInForExactTokenOut(poolPairData, amount) {
-        return stableMath_1._spotPriceAfterSwapBPTInForExactTokenOut(
+        return metaStableMath_1._spotPriceAfterSwapBPTInForExactTokenOut(
             amount,
             poolPairData
         );
     }
     _derivativeSpotPriceAfterSwapExactTokenInForTokenOut(poolPairData, amount) {
-        return stableMath_1._derivativeSpotPriceAfterSwapExactTokenInForTokenOut(
+        return metaStableMath_1._derivativeSpotPriceAfterSwapExactTokenInForTokenOut(
             amount,
             poolPairData
         );
     }
     _derivativeSpotPriceAfterSwapExactTokenInForBPTOut(poolPairData, amount) {
-        return stableMath_1._derivativeSpotPriceAfterSwapExactTokenInForBPTOut(
+        return metaStableMath_1._derivativeSpotPriceAfterSwapExactTokenInForBPTOut(
             amount,
             poolPairData
         );
     }
     _derivativeSpotPriceAfterSwapExactBPTInForTokenOut(poolPairData, amount) {
-        return stableMath_1._derivativeSpotPriceAfterSwapExactBPTInForTokenOut(
+        return metaStableMath_1._derivativeSpotPriceAfterSwapExactBPTInForTokenOut(
             amount,
             poolPairData
         );
     }
     _derivativeSpotPriceAfterSwapTokenInForExactTokenOut(poolPairData, amount) {
-        return stableMath_1._derivativeSpotPriceAfterSwapTokenInForExactTokenOut(
+        return metaStableMath_1._derivativeSpotPriceAfterSwapTokenInForExactTokenOut(
             amount,
             poolPairData
         );
     }
     _derivativeSpotPriceAfterSwapTokenInForExactBPTOut(poolPairData, amount) {
-        return stableMath_1._derivativeSpotPriceAfterSwapTokenInForExactBPTOut(
+        return metaStableMath_1._derivativeSpotPriceAfterSwapTokenInForExactBPTOut(
             amount,
             poolPairData
         );
     }
     _derivativeSpotPriceAfterSwapBPTInForExactTokenOut(poolPairData, amount) {
-        return stableMath_1._derivativeSpotPriceAfterSwapBPTInForExactTokenOut(
+        return metaStableMath_1._derivativeSpotPriceAfterSwapBPTInForExactTokenOut(
             amount,
             poolPairData
         );
@@ -240,16 +273,19 @@ class StablePool {
             // All values should use 1e18 fixed point
             // i.e. 1USDC => 1e18 not 1e6
             const amtScaled = bmath_1.scale(amount, 18);
+            let amountConverted = amtScaled.times(
+                poolPairData.tokenInPriceRate
+            );
             const amt = SDK.StableMath._calcOutGivenIn(
                 this.ampAdjusted,
                 poolPairData.allBalancesScaled,
                 poolPairData.tokenIndexIn,
                 poolPairData.tokenIndexOut,
-                amtScaled,
+                amountConverted,
                 poolPairData.swapFeeScaled
             );
             // return normalised amount
-            return bmath_1.scale(amt, -18);
+            return bmath_1.scale(amt.div(poolPairData.tokenOutPriceRate), -18);
         } catch (err) {
             console.error(`_evmoutGivenIn: ${err.message}`);
             return bmath_1.ZERO;
@@ -260,16 +296,19 @@ class StablePool {
             // All values should use 1e18 fixed point
             // i.e. 1USDC => 1e18 not 1e6
             const amtScaled = bmath_1.scale(amount, 18);
+            let amountConverted = amtScaled.times(
+                poolPairData.tokenOutPriceRate
+            );
             const amt = SDK.StableMath._calcInGivenOut(
                 this.ampAdjusted,
                 poolPairData.allBalancesScaled,
                 poolPairData.tokenIndexIn,
                 poolPairData.tokenIndexOut,
-                amtScaled,
+                amountConverted,
                 poolPairData.swapFeeScaled
             );
             // return normalised amount
-            return bmath_1.scale(amt, -18);
+            return bmath_1.scale(amt.div(poolPairData.tokenInPriceRate), -18);
         } catch (err) {
             console.error(`_evminGivenOut: ${err.message}`);
             return bmath_1.ZERO;
@@ -380,4 +419,4 @@ class StablePool {
         }
     }
 }
-exports.StablePool = StablePool;
+exports.MetaStablePool = MetaStablePool;

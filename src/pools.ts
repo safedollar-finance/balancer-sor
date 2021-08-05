@@ -13,6 +13,7 @@ import {
 import { WeightedPool } from './pools/weightedPool/weightedPool';
 import { StablePool } from './pools/stablePool/stablePool';
 import { ElementPool } from './pools/elementPool/elementPool';
+import { MetaStablePool } from './pools/metaStablePool/metaStablePool';
 import { ZERO } from './bmath';
 
 import disabledTokensDefault from './disabled-tokens.json';
@@ -92,8 +93,36 @@ export function filterPoolsOfInterest(
                 pool.baseToken
             );
             newPool.setCurrentBlockTimestamp(currentBlockTimestamp);
-        } else
-            throw `Unknown pool type or type field missing: ${pool.poolType}`;
+        } else if (pool.poolType === 'MetaStable') {
+            newPool = new MetaStablePool(
+                pool.id,
+                pool.address,
+                pool.amp,
+                pool.swapFee,
+                pool.totalShares,
+                pool.tokens,
+                pool.tokensList
+            );
+        } else if (pool.poolType === 'LiquidityBootstrapping') {
+            // If an LBP doesn't have its swaps paused we treat it like a regular Weighted pool.
+            // If it does we just ignore it.
+            if (pool.swapEnabled === true)
+                newPool = new WeightedPool(
+                    pool.id,
+                    pool.address,
+                    pool.swapFee,
+                    pool.totalWeight,
+                    pool.totalShares,
+                    pool.tokens,
+                    pool.tokensList
+                );
+            else return;
+        } else {
+            console.error(
+                `Unknown pool type or type field missing: ${pool.poolType} ${pool.id}`
+            );
+            return;
+        }
 
         let tokenListSet = new Set(pool.tokensList);
         // Depending on env file, we add the BPT as well as

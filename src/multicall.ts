@@ -32,7 +32,14 @@ export async function getOnChainBalances(
 
     let pools = {};
 
-    subgraphPools.pools.forEach(pool => {
+    subgraphPools.pools.forEach((pool, i) => {
+        // TO DO - This is a temp filter
+        if (
+            pool.id ===
+            '0x6b15a01b5d46a5321b627bd7deef1af57bc629070000000000000000000000d4'
+        )
+            subgraphPools.pools.splice(i, 1);
+
         _.set(pools, `${pool.id}.id`, pool.id);
         multiPool.call(`${pool.id}.poolTokens`, vaultAddress, 'getPoolTokens', [
             pool.id,
@@ -52,7 +59,11 @@ export async function getOnChainBalances(
                 pool.address,
                 'getSwapFeePercentage'
             );
-        } else if (pool.poolType === 'Stable') {
+        } else if (
+            pool.poolType === 'Stable' ||
+            pool.poolType === 'MetaStable'
+        ) {
+            // MetaStable is the same as Stable for multicall purposes
             multiPool.call(
                 `${pool.id}.amp`,
                 pool.address,
@@ -72,26 +83,36 @@ export async function getOnChainBalances(
 
     subgraphPools.pools.forEach(subgraphPool => {
         const onChainResult = pools[subgraphPool.id];
-        subgraphPool.swapFee = scale(
-            bnum(onChainResult.swapFee),
-            -18
-        ).toString();
-        onChainResult.poolTokens.tokens.forEach((token, i) => {
-            const tokenAddress = onChainResult.poolTokens.tokens[i]
-                .toString()
-                .toLowerCase();
-            const T = subgraphPool.tokens.find(t => t.address === tokenAddress);
-            const balance = scale(
-                bnum(onChainResult.poolTokens.balances[i]),
-                -Number(T.decimals)
+
+        try {
+            subgraphPool.swapFee = scale(
+                bnum(onChainResult.swapFee),
+                -18
             ).toString();
-            T.balance = balance;
-            if (subgraphPool.poolType === 'Weighted')
-                T.weight = scale(
-                    bnum(onChainResult.weights[i]),
-                    -18
+            onChainResult.poolTokens.tokens.forEach((token, i) => {
+                const tokenAddress = onChainResult.poolTokens.tokens[i]
+                    .toString()
+                    .toLowerCase();
+                const T = subgraphPool.tokens.find(
+                    t => t.address === tokenAddress
+                );
+                const balance = scale(
+                    bnum(onChainResult.poolTokens.balances[i]),
+                    -Number(T.decimals)
                 ).toString();
-        });
+                T.balance = balance;
+                if (subgraphPool.poolType === 'Weighted')
+                    T.weight = scale(
+                        bnum(onChainResult.weights[i]),
+                        -18
+                    ).toString();
+            });
+        } catch (err) {
+            // Likely an unsupported pool type
+            // console.log(`Issue with pool onchain call`)
+            // console.log(subgraphPool.id);
+            // console.log(onChainResult);
+        }
     });
     return subgraphPools;
 }

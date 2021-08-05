@@ -9,6 +9,7 @@ export enum PoolTypes {
     Weighted,
     Stable,
     Element,
+    MetaStable,
 }
 
 export enum SwapPairType {
@@ -77,6 +78,9 @@ export interface SubgraphPoolBase {
     unitSeconds?: number;
     principalToken?: string;
     baseToken?: string;
+
+    // LBP specific fields
+    swapEnabled?: boolean;
 }
 
 export interface SubGraphToken {
@@ -85,6 +89,8 @@ export interface SubGraphToken {
     decimals: string | number;
     // Stable & Element field
     weight?: string;
+    // MetaStablePool field
+    priceRate?: string;
 }
 
 export interface DisabledOptions {
@@ -138,6 +144,8 @@ export enum PoolFilter {
     All = 'All',
     Weighted = 'Weighted',
     Stable = 'Stable',
+    MetaStable = 'MetaStable',
+    LBP = 'LiquidityBootstrapping',
 }
 
 export interface SwapOptions {

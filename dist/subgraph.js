@@ -61,6 +61,7 @@ function fetchSubgraphPools(SubgraphUrl = '') {
             balance
             decimals
             weight
+            priceRate
           }
           tokensList
           totalWeight
@@ -69,6 +70,7 @@ function fetchSubgraphPools(SubgraphUrl = '') {
           unitSeconds
           principalToken
           baseToken
+          swapEnabled
         }
       }
     `;

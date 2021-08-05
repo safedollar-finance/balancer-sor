@@ -20,6 +20,7 @@ export async function fetchSubgraphPools(SubgraphUrl: string = '') {
             balance
             decimals
             weight
+            priceRate
           }
           tokensList
           totalWeight
@@ -28,6 +29,7 @@ export async function fetchSubgraphPools(SubgraphUrl: string = '') {
           unitSeconds
           principalToken
           baseToken
+          swapEnabled
         }
       }
     `;
