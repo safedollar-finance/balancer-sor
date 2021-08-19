@@ -1,5 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
+exports.INFINITESIMAL = exports.PRICE_ERROR_TOLERANCE = exports.ALLOW_ADD_REMOVE = void 0;
 const bignumber_1 = require('./utils/bignumber');
 let allowAddRemove = process.env.ALLOW_ADD_REMOVE || false;
 if (typeof allowAddRemove === 'string') {

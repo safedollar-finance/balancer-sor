@@ -40,6 +40,7 @@ var __importDefault =
         return mod && mod.__esModule ? mod : { default: mod };
     };
 Object.defineProperty(exports, '__esModule', { value: true });
+exports.getOnChainBalances = void 0;
 const bmath_1 = require('./bmath');
 const multicaller_1 = require('./utils/multicaller');
 const lodash_1 = __importDefault(require('lodash'));

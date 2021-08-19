@@ -1,5 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
+exports.PoolFilter = exports.PairTypes = exports.SwapPairType = exports.PoolTypes = exports.SwapTypes = void 0;
 var SwapTypes;
 (function(SwapTypes) {
     SwapTypes[(SwapTypes['SwapExactIn'] = 0)] = 'SwapExactIn';

@@ -35,6 +35,7 @@ var __awaiter =
         });
     };
 Object.defineProperty(exports, '__esModule', { value: true });
+exports.SOR = void 0;
 const bignumber_1 = require('./utils/bignumber');
 const bmath_1 = require('./bmath');
 const costToken_1 = require('./costToken');
@@ -68,7 +69,7 @@ class SOR {
             1: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
             5: '0x65748E8287Ce4B9E6D83EE853431958851550311',
             42: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
-            137: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
+            137: '0x17df34c4c5ab414b4b4f2860af2303109cfd5a33',
         };
         this.WETHADDR = {
             1: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',

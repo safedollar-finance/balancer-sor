@@ -40,6 +40,7 @@ var __importDefault =
         return mod && mod.__esModule ? mod : { default: mod };
     };
 Object.defineProperty(exports, '__esModule', { value: true });
+exports.Multicaller = exports.multicall = exports.call = void 0;
 const lodash_1 = __importDefault(require('lodash'));
 const contracts_1 = require('@ethersproject/contracts');
 const abi_1 = require('@ethersproject/abi');

@@ -1,5 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
+exports._derivativeSpotPriceAfterSwapBPTInForExactTokenOut = exports._derivativeSpotPriceAfterSwapExactBPTInForTokenOut = exports._derivativeSpotPriceAfterSwapTokenInForExactBPTOut = exports._derivativeSpotPriceAfterSwapExactTokenInForBPTOut = exports._derivativeSpotPriceAfterSwapTokenInForExactTokenOut = exports._derivativeSpotPriceAfterSwapExactTokenInForTokenOut = exports._spotPriceAfterSwapBPTInForExactTokenOut = exports._spotPriceAfterSwapExactBPTInForTokenOut = exports._spotPriceAfterSwapTokenInForExactBPTOut = exports._spotPriceAfterSwapExactTokenInForBPTOut = exports._spotPriceAfterSwapTokenInForExactTokenOut = exports._spotPriceAfterSwapExactTokenInForTokenOut = exports._poolDerivativesBPT = exports._poolDerivatives = exports._exactBPTInForTokenOut = exports._BPTInForExactTokenOut = exports._tokenInForExactBPTOut = exports._exactTokenInForBPTOut = exports._solveAnalyticalBalance = exports._tokenInForExactTokenOut = exports._exactTokenInForTokenOut = exports._invariant = void 0;
 const bmath_1 = require('../../bmath');
 // All functions are adapted from the solidity ones to be found on:
 // https://github.com/balancer-labs/balancer-core-v2/blob/master/contracts/pools/stable/StableMath.sol

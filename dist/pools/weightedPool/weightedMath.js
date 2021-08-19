@@ -1,5 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
+exports._derivativeSpotPriceAfterSwapBPTInForExactTokenOut = exports._derivativeSpotPriceAfterSwapExactBPTInForTokenOut = exports._derivativeSpotPriceAfterSwapTokenInForExactBPTOut = exports._derivativeSpotPriceAfterSwapExactTokenInForBPTOut = exports._derivativeSpotPriceAfterSwapTokenInForExactTokenOut = exports._derivativeSpotPriceAfterSwapExactTokenInForTokenOut = exports._spotPriceAfterSwapBPTInForExactTokenOut = exports._spotPriceAfterSwapExactBPTInForTokenOut = exports._spotPriceAfterSwapTokenInForExactBPTOut = exports._spotPriceAfterSwapExactTokenInForBPTOut = exports._spotPriceAfterSwapTokenInForExactTokenOut = exports._spotPriceAfterSwapExactTokenInForTokenOut = exports._exactBPTInForTokenOut = exports._BPTInForExactTokenOut = exports._tokenInForExactBPTOut = exports._exactTokenInForBPTOut = exports._tokenInForExactTokenOut = exports._exactTokenInForTokenOut = void 0;
 const bmath_1 = require('../../bmath');
 // All functions came from https://www.wolframcloud.com/obj/fernando.martinel/Published/SOR_equations_published.nb
 /////////

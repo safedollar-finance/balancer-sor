@@ -1,5 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
+exports.getTimeTillExpiry = exports._derivativeSpotPriceAfterSwapTokenInForExactTokenOut = exports._derivativeSpotPriceAfterSwapExactTokenInForTokenOut = exports._spotPriceAfterSwapTokenInForExactTokenOut = exports._spotPriceAfterSwapExactTokenInForTokenOut = exports._tokenInForExactTokenOut = exports._exactTokenInForTokenOut = void 0;
 const bmath_1 = require('../../bmath');
 // calc_out_given_in (swap)
 function _exactTokenInForTokenOut(amount, poolPairData) {
