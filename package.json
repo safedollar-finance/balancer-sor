@@ -1,6 +1,6 @@
 {
     "name": "@balancer-labs/sor2",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "license": "GPL-3.0-only",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -47,7 +47,7 @@
         "@ethersproject/contracts": "^5.0.5",
         "@ethersproject/providers": "5.0.12",
         "@ethersproject/solidity": "^5.0.5",
-        "@georgeroman/balancer-v2-pools": "^0.0.5",
+        "@georgeroman/balancer-v2-pools": "github:safedollardev/balancer-v2-pools",
         "bignumber.js": "^9.0.1",
         "isomorphic-fetch": "^2.2.1"
     }
