@@ -78,7 +78,7 @@ class SOR {
             5: '0x9A1000D492d40bfccbc03f413A48F5B6516Ec0Fd',
             42: '0xdFCeA9088c8A88A76FF74892C1457C17dfeef9C1',
             137: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
-            250: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83', // For Polygon this is actually wrapped MATIC
+            250: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
         };
         this.tokenCost = {};
         this.onChainBalanceCache = { pools: [] };
