@@ -64,18 +64,21 @@ class SOR {
             5: '0x3b2A02F22fCbc872AF77674ceD303eb269a46ce3',
             42: '0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A',
             137: '0xa1B2b503959aedD81512C37e9dce48164ec6a94d',
+            250: '0x2FbEAbe2A5A439CACac06e9C110cd2C8e997ec21',
         };
         this.VAULTADDR = {
             1: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
             5: '0x65748E8287Ce4B9E6D83EE853431958851550311',
             42: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
             137: '0x17df34c4c5ab414b4b4f2860af2303109cfd5a33',
+            250: '0x8AaecB905499A8E75b820c0EAFd7d3c2620F4065',
         };
         this.WETHADDR = {
             1: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
             5: '0x9A1000D492d40bfccbc03f413A48F5B6516Ec0Fd',
             42: '0xdFCeA9088c8A88A76FF74892C1457C17dfeef9C1',
             137: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
+            250: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83', // For Polygon this is actually wrapped MATIC
         };
         this.tokenCost = {};
         this.onChainBalanceCache = { pools: [] };
